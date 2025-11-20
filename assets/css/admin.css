@@ -1,0 +1,44 @@
+/**
+ * 7th Traditioner Admin Styles
+ */
+
+.seventh-trad-settings {
+    max-width: 1000px;
+}
+
+.seventh-trad-settings .nav-tab-wrapper {
+    margin-bottom: 30px;
+}
+
+.seventh-trad-settings .form-table th {
+    width: 250px;
+}
+
+.seventh-trad-settings code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.seventh-trad-settings .notice.inline {
+    margin: 20px 0;
+    padding: 12px 16px;
+}
+
+.seventh-trad-settings .notice.inline p:first-child {
+    margin-top: 0;
+}
+
+.seventh-trad-settings .notice.inline p:last-child {
+    margin-bottom: 0;
+}
+
+.seventh-trad-settings .notice.inline ol,
+.seventh-trad-settings .notice.inline ul {
+    margin: 12px 0 0 20px;
+}
+
+.seventh-trad-settings .notice.inline li {
+    margin-bottom: 8px;
+}

@@ -1,0 +1,14 @@
+# Exclude non-plugin files (requirements, research, etc.)
+non-plugin-files/
+
+# macOS
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
