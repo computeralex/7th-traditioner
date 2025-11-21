@@ -100,11 +100,25 @@
     flex: 0 0 38%;
 }
 
-#seventh-trad-currency-symbol {
+/* Amount field with currency prefix */
+.seventh-trad-amount-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.seventh-trad-currency-prefix {
+    position: absolute;
+    left: 16px;
     font-weight: 700;
     color: #0066cc;
-    margin-right: 6px;
     font-size: 19px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.seventh-trad-amount-input {
+    padding-left: 40px !important;
 }
 
 .seventh-trad-field label {
@@ -185,6 +199,10 @@
 .seventh-trad-payment-method:hover {
     border-color: #0066cc;
     background-color: #f0f7ff;
+}
+
+.seventh-trad-payment-method:hover span {
+    color: #000000 !important;
 }
 
 .seventh-trad-payment-method input[type="radio"] {

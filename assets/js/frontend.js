@@ -66,21 +66,41 @@
                 // Update symbol display
                 $('#seventh-trad-currency-symbol').text(symbol);
 
-                // Update amount field step based on decimals
-                const step = decimals === 0 ? '1' : '0.01';
-                $('#seventh-trad-amount').attr('step', step);
-
                 // Update placeholder
                 const placeholder = decimals === 0 ? '0' : '0.00';
                 $('#seventh-trad-amount').attr('placeholder', placeholder);
+
+                // Store decimals for validation
+                $('#seventh-trad-amount').data('decimals', decimals);
             }).trigger('change'); // Trigger on page load
 
-            // Validate amount field
+            // Validate and format amount field with proper decimal places
             $('#seventh-trad-amount').on('input', function() {
-                const value = parseFloat($(this).val());
-                if (value < 1) {
-                    $(this).val('');
+                let value = $(this).val();
+                const decimals = parseInt($(this).data('decimals')) || 2;
+
+                // Remove any non-numeric characters except decimal point
+                value = value.replace(/[^0-9.]/g, '');
+
+                // Only allow one decimal point
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
                 }
+
+                // Limit decimal places based on currency
+                if (parts.length === 2) {
+                    if (decimals === 0) {
+                        // No decimals allowed for this currency
+                        value = parts[0];
+                    } else {
+                        // Limit to specified decimal places
+                        parts[1] = parts[1].substring(0, decimals);
+                        value = parts[0] + '.' + parts[1];
+                    }
+                }
+
+                $(this).val(value);
             });
         },
 
@@ -227,7 +247,8 @@
             const name = $('#seventh-trad-name').val().trim();
             const email = $('#seventh-trad-email').val();
             const contributorType = $('#seventh-trad-contributor-type').val();
-            const amount = parseFloat($('#seventh-trad-amount').val());
+            const amountStr = $('#seventh-trad-amount').val().trim();
+            const amount = parseFloat(amountStr);
 
             if (!name) {
                 this.showError('Please enter your name');
@@ -259,7 +280,7 @@
                 }
             }
 
-            if (!amount || amount <= 0) {
+            if (!amountStr || !amount || amount <= 0) {
                 this.showError(seventhTradData.strings.enter_amount);
                 return false;
             }
@@ -296,11 +317,14 @@
                 recaptcha_token: recaptchaToken || '',
                 transaction_id: orderData.id,
                 paypal_order_id: orderData.id,
-                member_name: $('#seventh-trad-member-name').val(),
-                member_email: $('#seventh-trad-member-email').val(),
-                group_id: $('#seventh-trad-group').val(),
+                member_name: $('#seventh-trad-name').val(),
+                member_email: $('#seventh-trad-email').val(),
+                phone: $('#seventh-trad-phone').val(),
+                contributor_type: $('#seventh-trad-contributor-type').val(),
+                meeting_id: $('#seventh-trad-meeting').val(),
                 amount: $('#seventh-trad-amount').val(),
                 currency: $('#seventh-trad-currency').val(),
+                recurring: $('#seventh-trad-recurring').val(),
                 paypal_status: orderData.status,
                 custom_notes: $('#seventh-trad-notes').val()
             };

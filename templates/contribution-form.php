@@ -167,20 +167,21 @@ $fellowship_name = seventh_trad_get_fellowship_name();
 
                 <div class="seventh-trad-field seventh-trad-field-40">
                     <label for="seventh-trad-amount">
-                        <span id="seventh-trad-currency-symbol">$</span>
-                        <?php esc_html_e('Contribution Amount', '7th-traditioner'); ?>
+                        <?php esc_html_e('Amount', '7th-traditioner'); ?>
                         <span class="required">*</span>
                     </label>
-                    <input
-                        type="number"
-                        id="seventh-trad-amount"
-                        name="amount"
-                        class="seventh-trad-input"
-                        min="1"
-                        step="0.01"
-                        required
-                        placeholder="0.00"
-                    />
+                    <div class="seventh-trad-amount-wrapper">
+                        <span id="seventh-trad-currency-symbol" class="seventh-trad-currency-prefix">$</span>
+                        <input
+                            type="text"
+                            id="seventh-trad-amount"
+                            name="amount"
+                            class="seventh-trad-input seventh-trad-amount-input"
+                            min="1"
+                            required
+                            placeholder="0.00"
+                        />
+                    </div>
                 </div>
             </div>
 
