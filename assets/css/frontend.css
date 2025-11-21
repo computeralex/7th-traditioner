@@ -170,11 +170,11 @@
 }
 
 .seventh-trad-help {
-    display: block;
-    margin-top: 8px;
-    font-size: 17px;
-    color: #ffffff;
-    line-height: 1.5;
+    display: block !important;
+    margin-top: 8px !important;
+    font-size: 17px !important;
+    color: #ffffff !important;
+    line-height: 1.5 !important;
 }
 
 .seventh-trad-help a,
@@ -240,10 +240,10 @@
 }
 
 .seventh-trad-recurring-notice {
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 17px;
-    margin-top: 10px;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 17px !important;
+    margin-top: 10px !important;
 }
 
 .seventh-trad-payment-method input[type="radio"] {
