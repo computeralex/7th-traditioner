@@ -21,9 +21,19 @@
                 return;
             }
 
+            console.log('7th Traditioner: Initializing plugin');
+            console.log('7th Traditioner: PayPal SDK available:', typeof paypal !== 'undefined');
+
             this.initReCaptcha();
             this.bindEvents();
-            this.initPayPalButtons();
+
+            // Wait for PayPal SDK to load if it exists
+            if (typeof paypal !== 'undefined') {
+                this.initPayPalButtons();
+            } else {
+                console.warn('7th Traditioner: PayPal SDK not available, skipping button initialization');
+            }
+
             this.initSubmitButton();
         },
 
@@ -527,10 +537,11 @@
 
                 console.log('7th Traditioner: Form validation passed');
 
-                const paymentMethod = $('input[name="payment_method"]:checked').val();
-                console.log('7th Traditioner: Payment method:', paymentMethod);
+                try {
+                    const paymentMethod = $('input[name="payment_method"]:checked').val();
+                    console.log('7th Traditioner: Payment method:', paymentMethod);
 
-                if (paymentMethod === 'paypal') {
+                    if (paymentMethod === 'paypal') {
                     // Check if PayPal SDK is loaded
                     if (typeof paypal === 'undefined') {
                         console.error('7th Traditioner: PayPal SDK not loaded');
@@ -565,9 +576,15 @@
                         }
                     }, 100);
 
-                } else {
-                    console.log('7th Traditioner: Credit card selected (not implemented)');
-                    self.showError('Credit/Debit card processing is not yet implemented.');
+                    } else {
+                        console.log('7th Traditioner: Credit card selected (not implemented)');
+                        self.showError('Credit/Debit card processing is not yet implemented.');
+                    }
+                } catch (error) {
+                    console.error('7th Traditioner: Error in button click handler:', error);
+                    self.showError('An error occurred: ' + error.message);
+                    self.hideLoading();
+                    $('#seventh-trad-submit-btn').prop('disabled', false);
                 }
 
                 return false;
