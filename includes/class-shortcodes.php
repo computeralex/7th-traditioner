@@ -35,7 +35,11 @@ class Seventh_Trad_Shortcodes {
         }
 
         // Check if PayPal is configured
-        $paypal_client_id = get_option('seventh_trad_paypal_client_id');
+        $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
+        $paypal_client_id = ($paypal_mode === 'live')
+            ? get_option('seventh_trad_paypal_live_client_id')
+            : get_option('seventh_trad_paypal_sandbox_client_id');
+
         if (empty($paypal_client_id)) {
             return '<div class="seventh-trad-error">' .
                    __('PayPal is not configured. Please configure PayPal in the plugin settings.', '7th-traditioner') .

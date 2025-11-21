@@ -146,7 +146,8 @@ class Seventh_Trad_Settings {
      */
     private static function render_paypal_tab() {
         $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
-        $paypal_client_id = get_option('seventh_trad_paypal_client_id');
+        $paypal_sandbox_client_id = get_option('seventh_trad_paypal_sandbox_client_id');
+        $paypal_live_client_id = get_option('seventh_trad_paypal_live_client_id');
         ?>
         <table class="form-table">
             <tr>
@@ -165,19 +166,23 @@ class Seventh_Trad_Settings {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="paypal_client_id"><?php esc_html_e('PayPal Client ID', '7th-traditioner'); ?></label>
+                    <label for="paypal_sandbox_client_id"><?php esc_html_e('Sandbox Client ID', '7th-traditioner'); ?></label>
                 </th>
                 <td>
-                    <input type="text" id="paypal_client_id" name="paypal_client_id" value="<?php echo esc_attr($paypal_client_id); ?>" class="large-text code" />
+                    <input type="text" id="paypal_sandbox_client_id" name="paypal_sandbox_client_id" value="<?php echo esc_attr($paypal_sandbox_client_id); ?>" class="large-text code" />
                     <p class="description">
-                        <?php
-                        printf(
-                            /* translators: 1: opening link tag, 2: closing link tag */
-                            esc_html__('Get your Client ID from your %1$sPayPal Developer Dashboard%2$s', '7th-traditioner'),
-                            '<a href="https://developer.paypal.com/dashboard/" target="_blank" rel="noopener">',
-                            '</a>'
-                        );
-                        ?>
+                        <?php esc_html_e('Your PayPal Sandbox Client ID for testing', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="paypal_live_client_id"><?php esc_html_e('Live Client ID', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="paypal_live_client_id" name="paypal_live_client_id" value="<?php echo esc_attr($paypal_live_client_id); ?>" class="large-text code" />
+                    <p class="description">
+                        <?php esc_html_e('Your PayPal Live Client ID for production', '7th-traditioner'); ?>
                     </p>
                 </td>
             </tr>
@@ -189,10 +194,20 @@ class Seventh_Trad_Settings {
             </p>
             <ol>
                 <li><?php esc_html_e('Create a PayPal Business account if you don\'t have one', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('Log in to the PayPal Developer Dashboard', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('Create a new app or use an existing one', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('Copy your Client ID and paste it above', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('For testing, use Sandbox credentials. For production, use Live credentials', '7th-traditioner'); ?></li>
+                <li>
+                    <?php
+                    printf(
+                        /* translators: 1: opening link tag, 2: closing link tag */
+                        esc_html__('Log in to the %1$sPayPal Developer Dashboard%2$s', '7th-traditioner'),
+                        '<a href="https://developer.paypal.com/dashboard/" target="_blank" rel="noopener">',
+                        '</a>'
+                    );
+                    ?>
+                </li>
+                <li><?php esc_html_e('Create a new app (or use existing)', '7th-traditioner'); ?></li>
+                <li><?php esc_html_e('Copy the Sandbox Client ID and paste above', '7th-traditioner'); ?></li>
+                <li><?php esc_html_e('Switch to "Live" in PayPal Dashboard and copy the Live Client ID', '7th-traditioner'); ?></li>
+                <li><?php esc_html_e('Test with Sandbox mode first, then switch to Live when ready', '7th-traditioner'); ?></li>
             </ol>
         </div>
 
@@ -400,8 +415,12 @@ class Seventh_Trad_Settings {
             update_option('seventh_trad_paypal_mode', sanitize_text_field($_POST['paypal_mode']));
         }
 
-        if (isset($_POST['paypal_client_id'])) {
-            update_option('seventh_trad_paypal_client_id', sanitize_text_field($_POST['paypal_client_id']));
+        if (isset($_POST['paypal_sandbox_client_id'])) {
+            update_option('seventh_trad_paypal_sandbox_client_id', sanitize_text_field($_POST['paypal_sandbox_client_id']));
+        }
+
+        if (isset($_POST['paypal_live_client_id'])) {
+            update_option('seventh_trad_paypal_live_client_id', sanitize_text_field($_POST['paypal_live_client_id']));
         }
 
         if (isset($_POST['recaptcha_site_key'])) {

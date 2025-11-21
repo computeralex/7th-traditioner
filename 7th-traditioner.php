@@ -153,7 +153,11 @@ class Seventh_Traditioner {
         );
 
         // PayPal SDK
-        $paypal_client_id = get_option('seventh_trad_paypal_client_id');
+        $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
+        $paypal_client_id = ($paypal_mode === 'live')
+            ? get_option('seventh_trad_paypal_live_client_id')
+            : get_option('seventh_trad_paypal_sandbox_client_id');
+
         $currencies = seventh_trad_get_supported_currencies();
         $currency_codes = implode(',', array_keys($currencies));
 
