@@ -21,7 +21,6 @@
                 return;
             }
 
-            this.initPayPal();
             this.initReCaptcha();
             this.bindEvents();
             this.initSubmitButton();
@@ -236,73 +235,6 @@
             }
 
             return grecaptcha.execute(siteKey, { action: 'seventh_trad_contribution' });
-        },
-
-        /**
-         * Initialize PayPal
-         */
-        initPayPal: function() {
-            const self = this;
-
-            if (typeof paypal === 'undefined') {
-                console.error('7th Traditioner: PayPal SDK not loaded');
-                self.showError(seventhTradData.strings.error);
-                return;
-            }
-
-            paypal.Buttons({
-                // Set up the transaction
-                createOrder: function(data, actions) {
-                    // Validate form
-                    if (!self.validateForm()) {
-                        return actions.reject();
-                    }
-
-                    const amount = $('#seventh-trad-amount').val();
-                    const currency = $('#seventh-trad-currency').val();
-
-                    // Create the order
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: amount,
-                                currency_code: currency
-                            },
-                            description: self.getOrderDescription()
-                        }]
-                    });
-                },
-
-                // Finalize the transaction
-                onApprove: async function(data, actions) {
-                    self.showLoading();
-
-                    // Capture the order
-                    return actions.order.capture().then(async function(orderData) {
-                        console.log('7th Traditioner: Order captured', orderData);
-
-                        // Get reCAPTCHA token
-                        const recaptchaToken = await self.getReCaptchaToken();
-
-                        // Save contribution to database
-                        await self.saveContribution(orderData, recaptchaToken);
-                    });
-                },
-
-                // Handle errors
-                onError: function(err) {
-                    console.error('7th Traditioner: PayPal error', err);
-                    self.hideLoading();
-                    self.showError(seventhTradData.strings.error);
-                },
-
-                // Handle cancellation
-                onCancel: function(data) {
-                    console.log('7th Traditioner: Payment cancelled', data);
-                    self.hideLoading();
-                }
-
-            }).render('#seventh-trad-paypal-button');
         },
 
         /**

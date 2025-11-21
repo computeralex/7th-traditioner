@@ -294,9 +294,6 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </button>
             </div>
 
-            <!-- PayPal Button Container (for PayPal SDK) -->
-            <div id="seventh-trad-paypal-button" class="seventh-trad-paypal-container" style="display: none;"></div>
-
             <!-- Loading indicator -->
             <div id="seventh-trad-loading" class="seventh-trad-loading" style="display: none;">
                 <div class="seventh-trad-spinner"></div>
