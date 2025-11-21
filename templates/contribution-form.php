@@ -33,103 +33,171 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 <div class="seventh-trad-error" style="display: none;"></div>
             </div>
 
+            <!-- Name (Always Required) -->
             <div class="seventh-trad-field">
-                <label for="seventh-trad-member-name">
-                    <?php esc_html_e('Your Name', '7th-traditioner'); ?>
+                <label for="seventh-trad-name">
+                    <?php esc_html_e('Name', '7th-traditioner'); ?>
                     <span class="required">*</span>
                 </label>
                 <input
                     type="text"
-                    id="seventh-trad-member-name"
-                    name="member_name"
+                    id="seventh-trad-name"
+                    name="name"
                     class="seventh-trad-input"
                     required
-                    placeholder="<?php esc_attr_e('First Name, First & Last Initial', '7th-traditioner'); ?>"
+                    placeholder="<?php esc_attr_e('First and Last Name', '7th-traditioner'); ?>"
                 />
-                <small class="seventh-trad-help">
-                    <?php esc_html_e('Your name will appear in contribution records (e.g., "John D.")','7th-traditioner'); ?>
-                </small>
             </div>
 
+            <!-- Email (Always Required) -->
             <div class="seventh-trad-field">
-                <label for="seventh-trad-member-email">
-                    <?php esc_html_e('Email Address', '7th-traditioner'); ?>
+                <label for="seventh-trad-email">
+                    <?php esc_html_e('Email', '7th-traditioner'); ?>
                     <span class="required">*</span>
                 </label>
                 <input
                     type="email"
-                    id="seventh-trad-member-email"
-                    name="member_email"
+                    id="seventh-trad-email"
+                    name="email"
                     class="seventh-trad-input"
                     required
                     placeholder="<?php esc_attr_e('your.email@example.com', '7th-traditioner'); ?>"
                 />
-                <small class="seventh-trad-help">
-                    <?php esc_html_e('Required for receipt delivery', '7th-traditioner'); ?>
-                </small>
             </div>
 
+            <!-- Phone (Optional) -->
             <div class="seventh-trad-field">
-                <label for="seventh-trad-group">
-                    <?php esc_html_e('Select Group', '7th-traditioner'); ?>
+                <label for="seventh-trad-phone">
+                    <?php esc_html_e('Phone', '7th-traditioner'); ?>
+                    <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
+                </label>
+                <input
+                    type="tel"
+                    id="seventh-trad-phone"
+                    name="phone"
+                    class="seventh-trad-input"
+                    placeholder="<?php esc_attr_e('(555) 123-4567', '7th-traditioner'); ?>"
+                />
+            </div>
+
+            <!-- Contributor Type -->
+            <div class="seventh-trad-field">
+                <label for="seventh-trad-contributor-type">
+                    <?php esc_html_e('I am contributing', '7th-traditioner'); ?>
                     <span class="required">*</span>
                 </label>
                 <select
-                    id="seventh-trad-group"
-                    name="group_id"
+                    id="seventh-trad-contributor-type"
+                    name="contributor_type"
                     class="seventh-trad-select"
                     required
                 >
-                    <option value="">
-                        <?php esc_html_e('-- Choose a Group --', '7th-traditioner'); ?>
-                    </option>
-                    <?php foreach ($groups as $group_id => $group_name) : ?>
-                        <option value="<?php echo esc_attr($group_id); ?>">
-                            <?php echo esc_html($group_name); ?>
-                        </option>
-                    <?php endforeach; ?>
+                    <option value=""><?php esc_html_e('-- Select --', '7th-traditioner'); ?></option>
+                    <option value="individual"><?php esc_html_e('As an Individual', '7th-traditioner'); ?></option>
+                    <option value="group"><?php esc_html_e('On Behalf of a Group', '7th-traditioner'); ?></option>
                 </select>
             </div>
 
-            <div class="seventh-trad-field-row">
-                <div class="seventh-trad-field seventh-trad-field-half">
-                    <label for="seventh-trad-amount">
-                        <?php esc_html_e('Contribution Amount', '7th-traditioner'); ?>
+            <!-- Group Fields (shown when "On Behalf of a Group" selected) -->
+            <div id="group-fields" style="display: none;">
+                <div class="seventh-trad-field">
+                    <label for="seventh-trad-meeting-day">
+                        <?php esc_html_e('Meeting Day', '7th-traditioner'); ?>
                         <span class="required">*</span>
                     </label>
-                    <input
-                        type="number"
-                        id="seventh-trad-amount"
-                        name="amount"
-                        class="seventh-trad-input"
-                        min="1"
-                        step="0.01"
-                        required
-                        placeholder="0.00"
-                    />
-                </div>
-
-                <div class="seventh-trad-field seventh-trad-field-half">
-                    <label for="seventh-trad-currency">
-                        <?php esc_html_e('Currency', '7th-traditioner'); ?>
-                    </label>
                     <select
-                        id="seventh-trad-currency"
-                        name="currency"
+                        id="seventh-trad-meeting-day"
+                        name="meeting_day"
                         class="seventh-trad-select"
                     >
-                        <?php foreach ($currencies as $code => $name) : ?>
-                            <option
-                                value="<?php echo esc_attr($code); ?>"
-                                <?php selected($code, $default_currency); ?>
-                            >
-                                <?php echo esc_html($code . ' - ' . $name); ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <option value=""><?php esc_html_e('-- Select Day --', '7th-traditioner'); ?></option>
+                        <option value="0"><?php esc_html_e('Sunday', '7th-traditioner'); ?></option>
+                        <option value="1"><?php esc_html_e('Monday', '7th-traditioner'); ?></option>
+                        <option value="2"><?php esc_html_e('Tuesday', '7th-traditioner'); ?></option>
+                        <option value="3"><?php esc_html_e('Wednesday', '7th-traditioner'); ?></option>
+                        <option value="4"><?php esc_html_e('Thursday', '7th-traditioner'); ?></option>
+                        <option value="5"><?php esc_html_e('Friday', '7th-traditioner'); ?></option>
+                        <option value="6"><?php esc_html_e('Saturday', '7th-traditioner'); ?></option>
+                    </select>
+                </div>
+
+                <div class="seventh-trad-field">
+                    <label for="seventh-trad-meeting">
+                        <?php esc_html_e('Meeting Name', '7th-traditioner'); ?>
+                        <span class="required">*</span>
+                    </label>
+                    <select
+                        id="seventh-trad-meeting"
+                        name="meeting_id"
+                        class="seventh-trad-select"
+                        disabled
+                    >
+                        <option value=""><?php esc_html_e('-- Select Day First --', '7th-traditioner'); ?></option>
                     </select>
                 </div>
             </div>
 
+            <!-- Currency -->
+            <div class="seventh-trad-field">
+                <label for="seventh-trad-currency">
+                    <?php esc_html_e('Currency', '7th-traditioner'); ?>
+                </label>
+                <select
+                    id="seventh-trad-currency"
+                    name="currency"
+                    class="seventh-trad-select"
+                >
+                    <?php foreach ($currencies as $code => $name) : ?>
+                        <option
+                            value="<?php echo esc_attr($code); ?>"
+                            <?php selected($code, $default_currency); ?>
+                        >
+                            <?php echo esc_html($code . ' - ' . $name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <small class="seventh-trad-help">
+                    <?php esc_html_e('Default: USD', '7th-traditioner'); ?>
+                </small>
+            </div>
+
+            <!-- Contribution Amount -->
+            <div class="seventh-trad-field">
+                <label for="seventh-trad-amount">
+                    <?php esc_html_e('Contribution Amount', '7th-traditioner'); ?>
+                    <span class="required">*</span>
+                </label>
+                <input
+                    type="number"
+                    id="seventh-trad-amount"
+                    name="amount"
+                    class="seventh-trad-input"
+                    min="1"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                />
+            </div>
+
+            <!-- Recurring Contribution -->
+            <div class="seventh-trad-field">
+                <label for="seventh-trad-recurring">
+                    <?php esc_html_e('Is this a recurring contribution?', '7th-traditioner'); ?>
+                </label>
+                <select
+                    id="seventh-trad-recurring"
+                    name="recurring"
+                    class="seventh-trad-select"
+                >
+                    <option value="no"><?php esc_html_e('No', '7th-traditioner'); ?></option>
+                    <option value="yes"><?php esc_html_e('Yes (PayPal Only)', '7th-traditioner'); ?></option>
+                </select>
+                <small class="seventh-trad-help">
+                    <?php esc_html_e('Recurring contributions are processed monthly via PayPal', '7th-traditioner'); ?>
+                </small>
+            </div>
+
+            <!-- Notes -->
             <div class="seventh-trad-field">
                 <label for="seventh-trad-notes">
                     <?php esc_html_e('Notes', '7th-traditioner'); ?>
@@ -137,14 +205,29 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </label>
                 <textarea
                     id="seventh-trad-notes"
-                    name="custom_notes"
+                    name="notes"
                     class="seventh-trad-textarea"
                     rows="3"
-                    placeholder="<?php esc_attr_e('In memory of...', '7th-traditioner'); ?>"
+                    placeholder="<?php esc_attr_e('In memory of, gratitude, etc.', '7th-traditioner'); ?>"
                 ></textarea>
-                <small class="seventh-trad-help">
-                    <?php esc_html_e('Add a personal note if desired', '7th-traditioner'); ?>
-                </small>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="seventh-trad-field">
+                <label>
+                    <?php esc_html_e('Payment Method', '7th-traditioner'); ?>
+                    <span class="required">*</span>
+                </label>
+                <div class="seventh-trad-payment-methods">
+                    <label class="seventh-trad-payment-method">
+                        <input type="radio" name="payment_method" value="paypal" checked />
+                        <span><?php esc_html_e('PayPal', '7th-traditioner'); ?></span>
+                    </label>
+                    <label class="seventh-trad-payment-method">
+                        <input type="radio" name="payment_method" value="card" />
+                        <span><?php esc_html_e('Credit/Debit Card', '7th-traditioner'); ?></span>
+                    </label>
+                </div>
             </div>
 
             <!-- PayPal Button Container -->

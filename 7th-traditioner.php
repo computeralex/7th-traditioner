@@ -85,6 +85,9 @@ class Seventh_Traditioner {
         add_action('wp_ajax_seventh_trad_save_contribution', array('Seventh_Trad_Contribution_Handler', 'save_contribution'));
         add_action('wp_ajax_nopriv_seventh_trad_save_contribution', array('Seventh_Trad_Contribution_Handler', 'save_contribution'));
 
+        add_action('wp_ajax_seventh_trad_get_meetings_by_day', array($this, 'ajax_get_meetings_by_day'));
+        add_action('wp_ajax_nopriv_seventh_trad_get_meetings_by_day', array($this, 'ajax_get_meetings_by_day'));
+
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
 
@@ -221,6 +224,44 @@ class Seventh_Traditioner {
             SEVENTH_TRAD_VERSION,
             true
         );
+    }
+
+    /**
+     * AJAX handler for getting meetings by day
+     */
+    public function ajax_get_meetings_by_day() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        $day = isset($_POST['day']) ? intval($_POST['day']) : -1;
+
+        if ($day < 0 || $day > 6) {
+            wp_send_json_error(array('message' => 'Invalid day'));
+        }
+
+        // Get meetings for this day
+        $meetings = seventh_trad_get_meetings_by_day($day);
+
+        if (empty($meetings)) {
+            wp_send_json_success(array());
+        }
+
+        // Format meetings for dropdown
+        $formatted_meetings = array();
+        foreach ($meetings as $meeting) {
+            $formatted_meetings[] = array(
+                'id' => $meeting['id'],
+                'name' => $meeting['name'],
+                'time' => isset($meeting['time']) ? $meeting['time'] : '',
+                'time_formatted' => isset($meeting['time_formatted']) ? $meeting['time_formatted'] : '',
+                'group' => isset($meeting['group']) ? $meeting['group'] : '',
+                'group_id' => isset($meeting['group_id']) ? $meeting['group_id'] : '',
+            );
+        }
+
+        wp_send_json_success($formatted_meetings);
     }
 }
 

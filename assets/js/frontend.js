@@ -30,11 +30,73 @@
          * Bind events
          */
         bindEvents: function() {
+            const self = this;
+
+            // Contributor type change
+            $('#seventh-trad-contributor-type').on('change', function() {
+                const type = $(this).val();
+                if (type === 'group') {
+                    $('#group-fields').slideDown();
+                    $('#seventh-trad-meeting-day').prop('required', true);
+                    $('#seventh-trad-meeting').prop('required', true);
+                } else {
+                    $('#group-fields').slideUp();
+                    $('#seventh-trad-meeting-day').prop('required', false);
+                    $('#seventh-trad-meeting').prop('required', false);
+                }
+            });
+
+            // Meeting day change - load meetings for that day
+            $('#seventh-trad-meeting-day').on('change', function() {
+                const day = $(this).val();
+                if (day !== '') {
+                    self.loadMeetings(day);
+                } else {
+                    $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select Day First --</option>');
+                }
+            });
+
             // Validate amount field
             $('#seventh-trad-amount').on('input', function() {
                 const value = parseFloat($(this).val());
                 if (value < 1) {
                     $(this).val('');
+                }
+            });
+        },
+
+        /**
+         * Load meetings for a specific day via AJAX
+         */
+        loadMeetings: function(day) {
+            const $meetingSelect = $('#seventh-trad-meeting');
+
+            $meetingSelect.prop('disabled', true).html('<option value="">Loading...</option>');
+
+            $.ajax({
+                url: seventhTradData.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'seventh_trad_get_meetings_by_day',
+                    nonce: seventhTradData.nonce,
+                    day: day
+                },
+                success: function(response) {
+                    if (response.success && response.data.length > 0) {
+                        let options = '<option value="">-- Select Meeting --</option>';
+                        response.data.forEach(function(meeting) {
+                            const timeFormatted = meeting.time_formatted || '';
+                            const meetingLabel = timeFormatted + ' - ' + meeting.name;
+                            options += '<option value="' + meeting.id + '" data-group-name="' +
+                                      (meeting.group || '') + '">' + meetingLabel + '</option>';
+                        });
+                        $meetingSelect.html(options).prop('disabled', false);
+                    } else {
+                        $meetingSelect.html('<option value="">No meetings found for this day</option>');
+                    }
+                },
+                error: function() {
+                    $meetingSelect.html('<option value="">Error loading meetings</option>');
                 }
             });
         },
@@ -143,9 +205,9 @@
          * Validate form
          */
         validateForm: function() {
-            const name = $('#seventh-trad-member-name').val().trim();
-            const groupId = $('#seventh-trad-group').val();
-            const email = $('#seventh-trad-member-email').val();
+            const name = $('#seventh-trad-name').val().trim();
+            const email = $('#seventh-trad-email').val();
+            const contributorType = $('#seventh-trad-contributor-type').val();
             const amount = parseFloat($('#seventh-trad-amount').val());
 
             if (!name) {
@@ -153,14 +215,29 @@
                 return false;
             }
 
-            if (!groupId) {
-                this.showError(seventhTradData.strings.select_group);
-                return false;
-            }
-
             if (!email || !this.isValidEmail(email)) {
                 this.showError('Please enter a valid email address');
                 return false;
+            }
+
+            if (!contributorType) {
+                this.showError('Please select whether you are contributing as an individual or on behalf of a group');
+                return false;
+            }
+
+            // Validate group fields if contributing on behalf of group
+            if (contributorType === 'group') {
+                const day = $('#seventh-trad-meeting-day').val();
+                const meeting = $('#seventh-trad-meeting').val();
+
+                if (!day) {
+                    this.showError('Please select the meeting day');
+                    return false;
+                }
+                if (!meeting) {
+                    this.showError('Please select your meeting');
+                    return false;
+                }
             }
 
             if (!amount || amount <= 0) {
