@@ -60,6 +60,7 @@ class Seventh_Traditioner {
         // Core functionality
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-database.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-contribution-handler.php';
+        require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-paypal-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-email-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-settings.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-shortcodes.php';
@@ -87,6 +88,9 @@ class Seventh_Traditioner {
 
         add_action('wp_ajax_seventh_trad_get_meetings_by_day', array($this, 'ajax_get_meetings_by_day'));
         add_action('wp_ajax_nopriv_seventh_trad_get_meetings_by_day', array($this, 'ajax_get_meetings_by_day'));
+
+        add_action('wp_ajax_seventh_trad_create_paypal_order', array($this, 'ajax_create_paypal_order'));
+        add_action('wp_ajax_nopriv_seventh_trad_create_paypal_order', array($this, 'ajax_create_paypal_order'));
 
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
@@ -262,6 +266,72 @@ class Seventh_Traditioner {
         }
 
         wp_send_json_success($formatted_meetings);
+    }
+
+    /**
+     * AJAX handler for creating PayPal order
+     */
+    public function ajax_create_paypal_order() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        // Validate required fields
+        if (empty($_POST['amount']) || empty($_POST['currency'])) {
+            wp_send_json_error(array('message' => 'Amount and currency are required'));
+        }
+
+        $amount = floatval($_POST['amount']);
+        $currency = sanitize_text_field($_POST['currency']);
+        $description = isset($_POST['description']) ? sanitize_text_field($_POST['description']) : '7th Tradition Contribution';
+
+        // Validate amount
+        if ($amount <= 0) {
+            wp_send_json_error(array('message' => 'Invalid amount'));
+        }
+
+        // Validate currency
+        $supported_currencies = seventh_trad_get_supported_currencies();
+        if (!isset($supported_currencies[$currency])) {
+            wp_send_json_error(array('message' => 'Invalid currency'));
+        }
+
+        // Get return and cancel URLs
+        $return_url = home_url('/contribution-success');
+        $cancel_url = home_url('/contribution-cancelled');
+
+        // If we have a referrer, use it for better UX
+        if (!empty($_SERVER['HTTP_REFERER'])) {
+            $referrer = esc_url_raw($_SERVER['HTTP_REFERER']);
+            $return_url = add_query_arg('contribution', 'success', $referrer);
+            $cancel_url = add_query_arg('contribution', 'cancelled', $referrer);
+        }
+
+        // Prepare order data
+        $order_data = array(
+            'amount' => $amount,
+            'currency' => $currency,
+            'description' => $description,
+            'return_url' => $return_url,
+            'cancel_url' => $cancel_url,
+        );
+
+        // Create PayPal order
+        $result = Seventh_Trad_PayPal_Handler::create_order($order_data);
+
+        if (is_wp_error($result)) {
+            error_log('7th Traditioner PayPal Order Creation Error: ' . $result->get_error_message());
+            wp_send_json_error(array(
+                'message' => 'Failed to create PayPal order: ' . $result->get_error_message()
+            ));
+        }
+
+        // Return order details
+        wp_send_json_success(array(
+            'order_id' => $result['order_id'],
+            'approve_url' => $result['approve_url'],
+        ));
     }
 }
 
