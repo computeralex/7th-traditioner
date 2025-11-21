@@ -231,11 +231,13 @@ $fellowship_name = seventh_trad_get_fellowship_name();
             <div class="seventh-trad-field">
                 <label for="seventh-trad-recurring">
                     <?php esc_html_e('Is this a recurring contribution?', '7th-traditioner'); ?>
+                    <span class="required">*</span>
                 </label>
                 <select
                     id="seventh-trad-recurring"
                     name="recurring"
                     class="seventh-trad-select"
+                    required
                 >
                     <option value="no"><?php esc_html_e('No', '7th-traditioner'); ?></option>
                     <option value="yes"><?php esc_html_e('Yes (PayPal Only)', '7th-traditioner'); ?></option>
