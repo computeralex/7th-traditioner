@@ -173,19 +173,20 @@
     display: block;
     margin-top: 8px;
     font-size: 17px;
-    color: #000000;
+    color: #ffffff;
     line-height: 1.5;
 }
 
 .seventh-trad-help a {
-    color: #0051a3;
+    color: #d4af37;
     text-decoration: underline;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .seventh-trad-help a:hover {
-    color: #003366;
+    color: #f0c956;
+    text-decoration: none;
 }
 
 /* Payment Methods */
@@ -232,7 +233,7 @@
 }
 
 .seventh-trad-recurring-notice {
-    color: #8b4000;
+    color: #ffffff;
     font-weight: 600;
     font-size: 17px;
     margin-top: 10px;
