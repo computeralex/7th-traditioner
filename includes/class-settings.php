@@ -99,6 +99,7 @@ class Seventh_Trad_Settings {
     private static function render_general_tab() {
         $service_body_name = get_option('seventh_trad_service_body_name', get_bloginfo('name'));
         $default_currency = get_option('seventh_trad_default_currency', 'USD');
+        $show_group_id = get_option('seventh_trad_show_group_id', true);
         $currencies = seventh_trad_get_supported_currencies();
         ?>
         <table class="form-table">
@@ -127,6 +128,20 @@ class Seventh_Trad_Settings {
                     </select>
                     <p class="description">
                         <?php esc_html_e('The default currency pre-selected on the contribution form', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="show_group_id"><?php esc_html_e('Show Group ID Field', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="show_group_id" name="show_group_id" value="1" <?php checked($show_group_id, true); ?> />
+                        <?php esc_html_e('Display the Group ID field on the contribution form', '7th-traditioner'); ?>
+                    </label>
+                    <p class="description">
+                        <?php esc_html_e('Uncheck to hide the Group ID field if you don\'t need it', '7th-traditioner'); ?>
                     </p>
                 </td>
             </tr>
@@ -410,6 +425,9 @@ class Seventh_Trad_Settings {
         if (isset($_POST['default_currency'])) {
             update_option('seventh_trad_default_currency', sanitize_text_field($_POST['default_currency']));
         }
+
+        // Save show_group_id (checkbox)
+        update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? true : false);
 
         if (isset($_POST['paypal_mode'])) {
             update_option('seventh_trad_paypal_mode', sanitize_text_field($_POST['paypal_mode']));

@@ -510,10 +510,12 @@
         initSubmitButton: function() {
             const self = this;
 
-            $('#seventh-trad-submit-btn').on('click', async function() {
+            $('#seventh-trad-submit-btn').on('click', async function(e) {
+                e.preventDefault();
+
                 // Validate form
                 if (!self.validateForm()) {
-                    return;
+                    return false;
                 }
 
                 // Show loading
@@ -524,24 +526,77 @@
                     // Get reCAPTCHA token
                     const recaptchaToken = await self.getReCaptchaToken();
 
-                    // For now, we'll use PayPal (can be extended for card processing later)
+                    // Get form data
+                    const amount = $('#seventh-trad-amount').val();
+                    const currency = $('#seventh-trad-currency').val();
                     const paymentMethod = $('input[name="payment_method"]:checked').val();
 
                     if (paymentMethod === 'paypal') {
-                        // Trigger PayPal flow
-                        // Note: For actual implementation, we need to create order via PayPal SDK
-                        self.showError('PayPal integration is being set up. Please use the PayPal button above.');
+                        // Create PayPal order via AJAX
+                        $.ajax({
+                            url: seventhTradData.ajax_url,
+                            type: 'POST',
+                            data: {
+                                action: 'seventh_trad_create_paypal_order',
+                                nonce: seventhTradData.nonce,
+                                amount: amount,
+                                currency: currency,
+                                description: self.getOrderDescription()
+                            },
+                            success: function(response) {
+                                if (response.success && response.data.order_id) {
+                                    // Redirect to PayPal for payment
+                                    const approveUrl = response.data.approve_url;
+                                    if (approveUrl) {
+                                        window.location.href = approveUrl;
+                                    } else {
+                                        self.showError('Unable to redirect to PayPal');
+                                        self.hideLoading();
+                                        $('#seventh-trad-submit-btn').prop('disabled', false);
+                                    }
+                                } else {
+                                    self.showError(response.data.message || seventhTradData.strings.error);
+                                    self.hideLoading();
+                                    $('#seventh-trad-submit-btn').prop('disabled', false);
+                                }
+                            },
+                            error: function() {
+                                self.showError(seventhTradData.strings.error);
+                                self.hideLoading();
+                                $('#seventh-trad-submit-btn').prop('disabled', false);
+                            }
+                        });
                     } else {
                         self.showError('Credit/Debit card processing is not yet implemented.');
+                        self.hideLoading();
+                        $('#seventh-trad-submit-btn').prop('disabled', false);
                     }
                 } catch (error) {
                     console.error('7th Traditioner: Submit error', error);
                     self.showError(seventhTradData.strings.error);
-                } finally {
                     self.hideLoading();
                     $('#seventh-trad-submit-btn').prop('disabled', false);
                 }
+
+                return false;
             });
+        },
+
+        /**
+         * Get order description
+         */
+        getOrderDescription: function() {
+            const contributorType = $('#seventh-trad-contributor-type').val();
+            if (contributorType === 'group') {
+                const isManualEntry = $('#other-meeting-field').is(':visible');
+                if (isManualEntry) {
+                    return '7th Tradition Contribution - ' + $('#seventh-trad-other-meeting').val();
+                } else {
+                    const meetingName = $('#seventh-trad-meeting option:selected').text();
+                    return '7th Tradition Contribution - ' + meetingName;
+                }
+            }
+            return '7th Tradition Contribution';
         }
     };
 

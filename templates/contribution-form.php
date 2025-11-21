@@ -159,22 +159,26 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </div>
 
                 <!-- Group ID -->
+                <?php if (get_option('seventh_trad_show_group_id', true)) : ?>
                 <div class="seventh-trad-field">
                     <label for="seventh-trad-group-id">
                         <?php esc_html_e('Group ID', '7th-traditioner'); ?>
                         <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
                     </label>
                     <input
-                        type="text"
+                        type="number"
                         id="seventh-trad-group-id"
                         name="group_id"
                         class="seventh-trad-input"
                         placeholder="<?php esc_attr_e('Enter your group ID if known', '7th-traditioner'); ?>"
+                        min="0"
+                        step="1"
                     />
                     <small class="seventh-trad-help">
                         <?php esc_html_e('Your group\'s unique identifier if different from the meeting selection', '7th-traditioner'); ?>
                     </small>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- Currency and Amount Row -->
