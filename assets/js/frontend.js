@@ -107,6 +107,13 @@
                 let value = $(this).val();
                 const decimals = parseInt($(this).data('decimals')) || 2;
 
+                // For currencies with no decimals, only allow digits
+                if (decimals === 0) {
+                    value = value.replace(/[^0-9]/g, '');
+                    $(this).val(value);
+                    return;
+                }
+
                 // Remove any non-numeric characters except decimal point
                 value = value.replace(/[^0-9.]/g, '');
 
@@ -118,14 +125,9 @@
 
                 // Limit decimal places based on currency
                 if (parts.length === 2) {
-                    if (decimals === 0) {
-                        // No decimals allowed for this currency
-                        value = parts[0];
-                    } else {
-                        // Limit to specified decimal places
-                        parts[1] = parts[1].substring(0, decimals);
-                        value = parts[0] + '.' + parts[1];
-                    }
+                    // Limit to specified decimal places
+                    parts[1] = parts[1].substring(0, decimals);
+                    value = parts[0] + '.' + parts[1];
                 }
 
                 $(this).val(value);
