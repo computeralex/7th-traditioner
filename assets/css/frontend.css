@@ -169,12 +169,21 @@
     min-height: 100px;
 }
 
-.seventh-trad-help {
+.seventh-trad-help,
+small.seventh-trad-help {
     display: block !important;
     margin-top: 8px !important;
     font-size: 17px !important;
     color: #ffffff !important;
     line-height: 1.5 !important;
+}
+
+/* Override any theme/Elementor styles on small tags */
+.seventh-trad-form small,
+.seventh-trad-form small.seventh-trad-help,
+.seventh-trad-field small {
+    color: #ffffff !important;
+    font-size: 17px !important;
 }
 
 .seventh-trad-help a,
