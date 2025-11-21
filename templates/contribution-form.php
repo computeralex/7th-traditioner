@@ -137,46 +137,51 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </div>
             </div>
 
-            <!-- Currency -->
-            <div class="seventh-trad-field">
-                <label for="seventh-trad-currency">
-                    <?php esc_html_e('Currency', '7th-traditioner'); ?>
-                </label>
-                <select
-                    id="seventh-trad-currency"
-                    name="currency"
-                    class="seventh-trad-select"
-                >
-                    <?php foreach ($currencies as $code => $name) : ?>
-                        <option
-                            value="<?php echo esc_attr($code); ?>"
-                            <?php selected($code, $default_currency); ?>
-                        >
-                            <?php echo esc_html($code . ' - ' . $name); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <small class="seventh-trad-help">
-                    <?php esc_html_e('Default: USD', '7th-traditioner'); ?>
-                </small>
-            </div>
+            <!-- Currency and Amount Row -->
+            <div class="seventh-trad-field-row">
+                <div class="seventh-trad-field seventh-trad-field-60">
+                    <label for="seventh-trad-currency">
+                        <?php esc_html_e('Currency', '7th-traditioner'); ?>
+                    </label>
+                    <select
+                        id="seventh-trad-currency"
+                        name="currency"
+                        class="seventh-trad-select"
+                        data-decimals="2"
+                        data-symbol="$"
+                        data-position="before"
+                    >
+                        <?php foreach ($currencies as $code => $currency_data) : ?>
+                            <option
+                                value="<?php echo esc_attr($code); ?>"
+                                data-symbol="<?php echo esc_attr($currency_data['symbol']); ?>"
+                                data-decimals="<?php echo esc_attr($currency_data['decimals']); ?>"
+                                data-position="<?php echo esc_attr($currency_data['position']); ?>"
+                                <?php selected($code, $default_currency); ?>
+                            >
+                                <?php echo esc_html($currency_data['name'] . ' (' . $code . ')'); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-            <!-- Contribution Amount -->
-            <div class="seventh-trad-field">
-                <label for="seventh-trad-amount">
-                    <?php esc_html_e('Contribution Amount', '7th-traditioner'); ?>
-                    <span class="required">*</span>
-                </label>
-                <input
-                    type="number"
-                    id="seventh-trad-amount"
-                    name="amount"
-                    class="seventh-trad-input"
-                    min="1"
-                    step="0.01"
-                    required
-                    placeholder="0.00"
-                />
+                <div class="seventh-trad-field seventh-trad-field-40">
+                    <label for="seventh-trad-amount">
+                        <span id="seventh-trad-currency-symbol">$</span>
+                        <?php esc_html_e('Contribution Amount', '7th-traditioner'); ?>
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="number"
+                        id="seventh-trad-amount"
+                        name="amount"
+                        class="seventh-trad-input"
+                        min="1"
+                        step="0.01"
+                        required
+                        placeholder="0.00"
+                    />
+                </div>
             </div>
 
             <!-- Recurring Contribution -->

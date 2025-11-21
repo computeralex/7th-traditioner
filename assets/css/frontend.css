@@ -92,6 +92,21 @@
     flex: 1;
 }
 
+.seventh-trad-field-60 {
+    flex: 0 0 58%;
+}
+
+.seventh-trad-field-40 {
+    flex: 0 0 38%;
+}
+
+#seventh-trad-currency-symbol {
+    font-weight: 700;
+    color: #0066cc;
+    margin-right: 6px;
+    font-size: 19px;
+}
+
 .seventh-trad-field label {
     display: block;
     margin-bottom: 10px;

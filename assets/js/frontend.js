@@ -56,6 +56,25 @@
                 }
             });
 
+            // Currency change - update symbol and decimal places
+            $('#seventh-trad-currency').on('change', function() {
+                const $selected = $(this).find('option:selected');
+                const symbol = $selected.data('symbol');
+                const decimals = $selected.data('decimals');
+                const position = $selected.data('position');
+
+                // Update symbol display
+                $('#seventh-trad-currency-symbol').text(symbol);
+
+                // Update amount field step based on decimals
+                const step = decimals === 0 ? '1' : '0.01';
+                $('#seventh-trad-amount').attr('step', step);
+
+                // Update placeholder
+                const placeholder = decimals === 0 ? '0' : '0.00';
+                $('#seventh-trad-amount').attr('placeholder', placeholder);
+            }).trigger('change'); // Trigger on page load
+
             // Validate amount field
             $('#seventh-trad-amount').on('input', function() {
                 const value = parseFloat($(this).val());

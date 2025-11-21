@@ -10,36 +10,180 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Get supported currencies
+ * Get supported currencies with detailed formatting info
  *
- * @return array Array of currency codes => currency names
+ * @return array Array of currency data
  */
 function seventh_trad_get_supported_currencies() {
     return array(
-        'AUD' => __('Australian Dollar', '7th-traditioner'),
-        'BRL' => __('Brazilian Real', '7th-traditioner'),
-        'CAD' => __('Canadian Dollar', '7th-traditioner'),
-        'CNY' => __('Chinese Renminbi', '7th-traditioner'),
-        'CZK' => __('Czech Koruna', '7th-traditioner'),
-        'DKK' => __('Danish Krone', '7th-traditioner'),
-        'EUR' => __('Euro', '7th-traditioner'),
-        'HKD' => __('Hong Kong Dollar', '7th-traditioner'),
-        'HUF' => __('Hungarian Forint', '7th-traditioner'),
-        'ILS' => __('Israeli New Shekel', '7th-traditioner'),
-        'JPY' => __('Japanese Yen', '7th-traditioner'),
-        'MYR' => __('Malaysian Ringgit', '7th-traditioner'),
-        'MXN' => __('Mexican Peso', '7th-traditioner'),
-        'TWD' => __('New Taiwan Dollar', '7th-traditioner'),
-        'NZD' => __('New Zealand Dollar', '7th-traditioner'),
-        'NOK' => __('Norwegian Krone', '7th-traditioner'),
-        'PHP' => __('Philippine Peso', '7th-traditioner'),
-        'PLN' => __('Polish Złoty', '7th-traditioner'),
-        'GBP' => __('Pound Sterling', '7th-traditioner'),
-        'SGD' => __('Singapore Dollar', '7th-traditioner'),
-        'SEK' => __('Swedish Krona', '7th-traditioner'),
-        'CHF' => __('Swiss Franc', '7th-traditioner'),
-        'THB' => __('Thai Baht', '7th-traditioner'),
-        'USD' => __('United States Dollar', '7th-traditioner'),
+        'USD' => array(
+            'name' => __('United States Dollar', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'AUD' => array(
+            'name' => __('Australian Dollar', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'BRL' => array(
+            'name' => __('Brazilian Real', '7th-traditioner'),
+            'symbol' => 'R$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => 'R$ X.XX'
+        ),
+        'CAD' => array(
+            'name' => __('Canadian Dollar', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'CNY' => array(
+            'name' => __('Chinese Renminbi', '7th-traditioner'),
+            'symbol' => '¥',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '¥X.XX'
+        ),
+        'CZK' => array(
+            'name' => __('Czech Koruna', '7th-traditioner'),
+            'symbol' => 'Kč',
+            'position' => 'after',
+            'decimals' => 2,
+            'format' => 'X.XX Kč'
+        ),
+        'DKK' => array(
+            'name' => __('Danish Krone', '7th-traditioner'),
+            'symbol' => 'kr.',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => 'kr. X.XX'
+        ),
+        'EUR' => array(
+            'name' => __('Euro', '7th-traditioner'),
+            'symbol' => '€',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '€X.XX'
+        ),
+        'GBP' => array(
+            'name' => __('Pound Sterling', '7th-traditioner'),
+            'symbol' => '£',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '£X.XX'
+        ),
+        'HKD' => array(
+            'name' => __('Hong Kong Dollar', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'HUF' => array(
+            'name' => __('Hungarian Forint', '7th-traditioner'),
+            'symbol' => 'Ft',
+            'position' => 'after',
+            'decimals' => 0,
+            'format' => 'X Ft'
+        ),
+        'ILS' => array(
+            'name' => __('Israeli New Shekel', '7th-traditioner'),
+            'symbol' => '₪',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '₪X.XX'
+        ),
+        'JPY' => array(
+            'name' => __('Japanese Yen', '7th-traditioner'),
+            'symbol' => '¥',
+            'position' => 'before',
+            'decimals' => 0,
+            'format' => '¥X'
+        ),
+        'MYR' => array(
+            'name' => __('Malaysian Ringgit', '7th-traditioner'),
+            'symbol' => 'RM',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => 'RM X.XX'
+        ),
+        'MXN' => array(
+            'name' => __('Mexican Peso', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'NOK' => array(
+            'name' => __('Norwegian Krone', '7th-traditioner'),
+            'symbol' => 'kr',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => 'kr X.XX'
+        ),
+        'NZD' => array(
+            'name' => __('New Zealand Dollar', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'PHP' => array(
+            'name' => __('Philippine Peso', '7th-traditioner'),
+            'symbol' => '₱',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '₱X.XX'
+        ),
+        'PLN' => array(
+            'name' => __('Polish Złoty', '7th-traditioner'),
+            'symbol' => 'zł',
+            'position' => 'after',
+            'decimals' => 2,
+            'format' => 'X.XX zł'
+        ),
+        'SEK' => array(
+            'name' => __('Swedish Krona', '7th-traditioner'),
+            'symbol' => 'kr',
+            'position' => 'after',
+            'decimals' => 2,
+            'format' => 'X.XX kr'
+        ),
+        'SGD' => array(
+            'name' => __('Singapore Dollar', '7th-traditioner'),
+            'symbol' => '$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '$X.XX'
+        ),
+        'CHF' => array(
+            'name' => __('Swiss Franc', '7th-traditioner'),
+            'symbol' => 'CHF',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => 'CHF X.XX'
+        ),
+        'THB' => array(
+            'name' => __('Thai Baht', '7th-traditioner'),
+            'symbol' => '฿',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => '฿X.XX'
+        ),
+        'TWD' => array(
+            'name' => __('New Taiwan Dollar', '7th-traditioner'),
+            'symbol' => 'NT$',
+            'position' => 'before',
+            'decimals' => 2,
+            'format' => 'NT$X.XX'
+        ),
     );
 }
 
