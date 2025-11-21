@@ -161,12 +161,11 @@ class Seventh_Traditioner {
             ? get_option('seventh_trad_paypal_live_client_id')
             : get_option('seventh_trad_paypal_sandbox_client_id');
 
-        $default_currency = get_option('seventh_trad_default_currency', 'USD');
-
         if ($paypal_client_id) {
+            // PayPal supports multiple currencies with the * parameter
             wp_enqueue_script(
                 'paypal-sdk',
-                'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id) . '&currency=' . esc_attr($default_currency) . '&intent=capture&disable-funding=credit,card',
+                'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id) . '&currency=*&intent=capture',
                 array(),
                 null,
                 true
