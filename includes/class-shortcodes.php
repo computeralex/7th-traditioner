@@ -47,7 +47,7 @@ class Seventh_Trad_Shortcodes {
         }
 
         $atts = shortcode_atts(array(
-            'title' => __('Support Your Group', '7th-traditioner'),
+            'title' => '',
             'description' => '',
         ), $atts, 'seventh_traditioner');
 

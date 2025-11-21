@@ -27,18 +27,6 @@ $fellowship_name = seventh_trad_get_fellowship_name();
             </div>
         <?php endif; ?>
 
-        <div class="seventh-trad-tradition-notice">
-            <p>
-                <?php
-                printf(
-                    /* translators: %s: Fellowship name */
-                    esc_html__('Following our 7th Tradition, %s is self-supporting through voluntary member contributions. We decline outside contributions.', '7th-traditioner'),
-                    '<strong>' . esc_html($fellowship_name) . '</strong>'
-                );
-                ?>
-            </p>
-        </div>
-
         <form id="seventh-trad-form" class="seventh-trad-form">
             <div class="seventh-trad-messages">
                 <div class="seventh-trad-success" style="display: none;"></div>
