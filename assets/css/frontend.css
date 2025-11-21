@@ -284,10 +284,10 @@
 }
 
 .seventh-trad-submit-btn:hover {
-    background-color: #005a94 !important;
-    border-color: #005a94 !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    background-color: #d4af37 !important;
+    border-color: #d4af37 !important;
+    color: #000000 !important;
+    box-shadow: 0 4px 8px rgba(212, 175, 55, 0.5) !important;
 }
 
 .seventh-trad-submit-btn:active {
