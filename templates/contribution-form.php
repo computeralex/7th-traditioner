@@ -158,7 +158,7 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                     </small>
                 </div>
 
-                <!-- Group ID (Optional) -->
+                <!-- Group ID -->
                 <div class="seventh-trad-field">
                     <label for="seventh-trad-group-id">
                         <?php esc_html_e('Group ID', '7th-traditioner'); ?>
@@ -182,6 +182,7 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 <div class="seventh-trad-field seventh-trad-field-60">
                     <label for="seventh-trad-currency">
                         <?php esc_html_e('Currency', '7th-traditioner'); ?>
+                        <span class="required">*</span>
                     </label>
                     <select
                         id="seventh-trad-currency"
@@ -190,6 +191,7 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                         data-decimals="2"
                         data-symbol="$"
                         data-position="before"
+                        required
                     >
                         <?php foreach ($currencies as $code => $currency_data) : ?>
                             <option
