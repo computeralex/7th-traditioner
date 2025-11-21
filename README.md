@@ -1,6 +1,6 @@
 # 7th Traditioner
 
-A fellowship-agnostic 7th Tradition contribution system for 12-step groups. Integrates with TSML (12 Step Meeting List) and PayPal for secure, PCI-compliant contributions.
+A 7th Tradition contribution system for 12-step fellowships. Integrates with TSML (12 Step Meeting List) and PayPal for secure, PCI-compliant contributions.
 
 **Built by Alex M and Claude (Code)**
 
@@ -14,7 +14,7 @@ A fellowship-agnostic 7th Tradition contribution system for 12-step groups. Inte
 
 ## Features
 
-✅ **Fellowship-Agnostic** - Works with any 12-step program (AA, NA, RCA, etc.)
+✅ **Works with Any Fellowship** - AA, NA, RCA, and all 12-step programs
 ✅ **TSML Integration** - Automatically pulls groups from 12 Step Meeting List plugin
 ✅ **PayPal Payment Processing** - Secure, PCI-compliant payment handling
 ✅ **Multi-Currency Support** - 24 currencies supported

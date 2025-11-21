@@ -2,7 +2,7 @@
 /**
  * Plugin Name: 7th Traditioner
  * Plugin URI: https://github.com/computeralex/7th-traditioner
- * Description: A fellowship-agnostic 7th Tradition contribution system for 12-step groups. Integrates with TSML (12 Step Meeting List) and PayPal for secure, PCI-compliant contributions.
+ * Description: A 7th Tradition contribution system for 12-step fellowships. Integrates with TSML (12 Step Meeting List) and PayPal for secure, PCI-compliant contributions.
  * Version: 1.0.0
  * Author: Alex M and Claude (Code)
  * Author URI: https://github.com/computeralex/7th-traditioner
