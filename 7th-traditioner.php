@@ -193,6 +193,7 @@ class Seventh_Traditioner {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('seventh_trad_nonce'),
             'recaptcha_site_key' => $recaptcha_site_key,
+            'paypal_mode' => get_option('seventh_trad_paypal_mode', 'sandbox'),
             'strings' => array(
                 'processing' => __('Processing contribution...', '7th-traditioner'),
                 'success' => __('Thank you for your contribution!', '7th-traditioner'),
