@@ -177,16 +177,23 @@
     line-height: 1.5;
 }
 
-.seventh-trad-help a {
-    color: #d4af37;
-    text-decoration: underline;
-    cursor: pointer;
-    font-weight: 700;
+.seventh-trad-help a,
+.seventh-trad-help a:link,
+.seventh-trad-help a:visited,
+#seventh-trad-add-other-meeting,
+#seventh-trad-select-from-list {
+    color: #d4af37 !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
 }
 
-.seventh-trad-help a:hover {
-    color: #f0c956;
-    text-decoration: none;
+.seventh-trad-help a:hover,
+.seventh-trad-help a:focus,
+#seventh-trad-add-other-meeting:hover,
+#seventh-trad-select-from-list:hover {
+    color: #f0c956 !important;
+    text-decoration: none !important;
 }
 
 /* Payment Methods */
