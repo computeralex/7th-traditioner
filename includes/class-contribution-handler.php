@@ -36,7 +36,7 @@ class Seventh_Trad_Contribution_Handler {
         }
 
         // Validate required fields
-        $required_fields = array('transaction_id', 'member_name', 'member_email', 'group_id', 'amount', 'currency');
+        $required_fields = array('transaction_id', 'member_name', 'member_email', 'amount', 'currency', 'contributor_type');
         foreach ($required_fields as $field) {
             if (empty($_POST[$field])) {
                 wp_send_json_error(array(
@@ -45,6 +45,20 @@ class Seventh_Trad_Contribution_Handler {
                         __('Required field missing: %s', '7th-traditioner'),
                         $field
                     )
+                ));
+            }
+        }
+
+        // Validate group-specific fields if contributing on behalf of group
+        if ($_POST['contributor_type'] === 'group') {
+            if (empty($_POST['meeting_day'])) {
+                wp_send_json_error(array(
+                    'message' => __('Meeting day is required when contributing on behalf of a group.', '7th-traditioner')
+                ));
+            }
+            if (empty($_POST['meeting_id']) && empty($_POST['meeting_name'])) {
+                wp_send_json_error(array(
+                    'message' => __('Meeting information is required when contributing on behalf of a group.', '7th-traditioner')
                 ));
             }
         }

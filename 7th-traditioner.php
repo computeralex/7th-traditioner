@@ -168,10 +168,10 @@ class Seventh_Traditioner {
         if ($paypal_client_id) {
             $default_currency = get_option('seventh_trad_default_currency', 'USD');
             // Disable Pay Later - we don't want people borrowing money to contribute!
-            // Also disable credit/debit cards - PayPal account only for better accountability
+            // Allow cards for one-time contributions, but recurring requires PayPal account
             $sdk_url = 'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id)
                      . '&currency=' . esc_attr($default_currency)
-                     . '&disable-funding=paylater,card';
+                     . '&disable-funding=paylater';
 
             wp_enqueue_script(
                 'paypal-sdk',

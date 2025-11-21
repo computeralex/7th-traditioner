@@ -443,9 +443,6 @@
                     label: 'paypal'
                 },
 
-                // Disable Pay Later (we don't want people borrowing money to contribute!)
-                fundingSource: paypal.FUNDING.PAYPAL,
-
                 // Validate form before creating order
                 onClick: function(data, actions) {
                     console.log('7th Traditioner: PayPal button clicked');
@@ -464,7 +461,22 @@
                     }
 
                     console.log('7th Traditioner: Form validation passed');
-                    return actions.resolve();
+
+                    // Get reCAPTCHA token to prevent card testing attacks
+                    return self.getReCaptchaToken().then(function(token) {
+                        if (token) {
+                            console.log('7th Traditioner: reCAPTCHA token obtained');
+                            self.recaptchaToken = token;
+                            return actions.resolve();
+                        } else {
+                            console.warn('7th Traditioner: reCAPTCHA not configured, proceeding anyway');
+                            return actions.resolve();
+                        }
+                    }).catch(function(err) {
+                        console.error('7th Traditioner: reCAPTCHA error:', err);
+                        self.showError('Security verification failed. Please try again.');
+                        return actions.reject();
+                    });
                 },
                 createOrder: function(data, actions) {
                     console.log('7th Traditioner: createOrder called');
