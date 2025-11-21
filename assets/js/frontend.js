@@ -468,6 +468,12 @@
                 const paymentMethod = $('input[name="payment_method"]:checked').val();
 
                 if (paymentMethod === 'paypal') {
+                    // Check if PayPal SDK is available
+                    if (typeof paypal === 'undefined') {
+                        self.showError('PayPal is not available. Please check your settings.');
+                        return false;
+                    }
+
                     // Show loading
                     self.showLoading();
                     $(this).prop('disabled', true);
@@ -475,62 +481,57 @@
                     // Get form data
                     const amount = $('#seventh-trad-amount').val();
                     const currency = $('#seventh-trad-currency').val();
+                    const description = self.getOrderDescription();
 
-                    // Create PayPal order via backend
-                    $.ajax({
-                        url: seventhTradData.ajax_url,
-                        type: 'POST',
-                        data: {
-                            action: 'seventh_trad_create_paypal_order',
-                            nonce: seventhTradData.nonce,
-                            amount: amount,
-                            currency: currency,
-                            description: self.getOrderDescription()
+                    console.log('7th Traditioner: Creating PayPal order');
+                    console.log('7th Traditioner: Amount:', amount, 'Currency:', currency);
+
+                    // Use PayPal SDK to create order and redirect
+                    paypal.Buttons({
+                        createOrder: function(data, actions) {
+                            return actions.order.create({
+                                purchase_units: [{
+                                    amount: {
+                                        value: amount,
+                                        currency_code: currency
+                                    },
+                                    description: description
+                                }]
+                            });
                         },
-                        success: function(response) {
-                            if (response.success && response.data.approve_url) {
-                                // Open PayPal in popup window
-                                const width = 500;
-                                const height = 600;
-                                const left = (screen.width / 2) - (width / 2);
-                                const top = (screen.height / 2) - (height / 2);
+                        onApprove: async function(data, actions) {
+                            console.log('7th Traditioner: Payment approved, capturing...');
+                            const details = await actions.order.capture();
+                            console.log('7th Traditioner: Payment captured:', details);
 
-                                const popup = window.open(
-                                    response.data.approve_url,
-                                    'PayPal',
-                                    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-                                );
+                            // Get reCAPTCHA token
+                            const recaptchaToken = await self.getReCaptchaToken();
 
-                                // Check if popup was blocked
-                                if (!popup || popup.closed || typeof popup.closed == 'undefined') {
-                                    self.showError('Popup was blocked. Please allow popups for this site and try again.');
-                                    self.hideLoading();
-                                    $('#seventh-trad-submit-btn').prop('disabled', false);
-                                    return;
-                                }
-
-                                // Poll for popup close
-                                const pollTimer = setInterval(function() {
-                                    if (popup.closed) {
-                                        clearInterval(pollTimer);
-                                        // Popup closed - check URL for success/cancel
-                                        self.hideLoading();
-                                        $('#seventh-trad-submit-btn').prop('disabled', false);
-                                        self.showSuccess('Payment window closed. If you completed your payment, it should be processing.');
-                                    }
-                                }, 500);
-                            } else {
-                                self.showError(response.data.message || seventhTradData.strings.error);
-                                self.hideLoading();
-                                $('#seventh-trad-submit-btn').prop('disabled', false);
-                            }
+                            // Save to database
+                            await self.saveContribution(details, recaptchaToken);
                         },
-                        error: function() {
+                        onCancel: function(data) {
+                            console.log('7th Traditioner: Payment cancelled');
+                            self.hideLoading();
+                            $('#seventh-trad-submit-btn').prop('disabled', false);
+                        },
+                        onError: function(err) {
+                            console.error('7th Traditioner: PayPal error:', err);
                             self.showError(seventhTradData.strings.error);
                             self.hideLoading();
                             $('#seventh-trad-submit-btn').prop('disabled', false);
                         }
+                    }).createOrder().then(function(orderID) {
+                        console.log('7th Traditioner: Order created:', orderID);
+                        // Redirect to PayPal
+                        window.location.href = 'https://www.sandbox.paypal.com/checkoutnow?token=' + orderID;
+                    }).catch(function(err) {
+                        console.error('7th Traditioner: Order creation failed:', err);
+                        self.showError('Failed to create PayPal order: ' + err.message);
+                        self.hideLoading();
+                        $('#seventh-trad-submit-btn').prop('disabled', false);
                     });
+
                 } else {
                     self.showError('Credit/Debit card processing is not yet implemented.');
                 }
