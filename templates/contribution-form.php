@@ -294,6 +294,9 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </button>
             </div>
 
+            <!-- Hidden PayPal button container (triggered programmatically) -->
+            <div id="seventh-trad-paypal-button-container" style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;"></div>
+
             <!-- Loading indicator -->
             <div id="seventh-trad-loading" class="seventh-trad-loading" style="display: none;">
                 <div class="seventh-trad-spinner"></div>
