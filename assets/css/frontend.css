@@ -234,9 +234,13 @@ small.seventh-trad-help {
 }
 
 .seventh-trad-payment-method-disabled {
-    opacity: 0.5;
     cursor: not-allowed !important;
     background-color: #f5f5f5 !important;
+    opacity: 0.7;
+}
+
+.seventh-trad-payment-method-disabled span {
+    color: #333333 !important;
 }
 
 .seventh-trad-payment-method-disabled:hover {
@@ -246,6 +250,7 @@ small.seventh-trad-help {
 
 .seventh-trad-payment-method-disabled input[type="radio"] {
     cursor: not-allowed !important;
+    opacity: 0.5;
 }
 
 .seventh-trad-recurring-notice {
