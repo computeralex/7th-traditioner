@@ -162,10 +162,12 @@ class Seventh_Traditioner {
             : get_option('seventh_trad_paypal_sandbox_client_id');
 
         if ($paypal_client_id) {
-            // PayPal supports multiple currencies with the * parameter
+            // Load PayPal SDK with default currency
+            // Note: The currency will be set dynamically in the createOrder call
+            $default_currency = get_option('seventh_trad_default_currency', 'USD');
             wp_enqueue_script(
                 'paypal-sdk',
-                'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id) . '&currency=*&intent=capture',
+                'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id) . '&currency=' . esc_attr($default_currency) . '&intent=capture',
                 array(),
                 null,
                 true
