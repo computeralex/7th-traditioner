@@ -420,21 +420,19 @@
 
 
         /**
-         * Initialize submit button and PayPal
+         * Render PayPal buttons based on recurring selection
          */
-        initSubmitButton: function() {
+        renderPayPalButtons: function() {
             const self = this;
+            const isRecurring = $('#seventh-trad-recurring').val() === 'yes';
 
-            // Check if PayPal SDK is available
-            if (typeof paypal === 'undefined') {
-                console.warn('7th Traditioner: PayPal SDK not loaded');
-                return;
-            }
+            // Clear existing buttons
+            $('#seventh-trad-paypal-button-container').empty();
 
-            console.log('7th Traditioner: Rendering PayPal button');
+            console.log('7th Traditioner: Rendering PayPal buttons (Recurring: ' + isRecurring + ')');
 
-            // Render PayPal button immediately on page load
-            paypal.Buttons({
+            // Configure button options based on recurring
+            const buttonConfig = {
                 // Style configuration
                 style: {
                     layout: 'vertical',
@@ -454,8 +452,8 @@
                     }
 
                     // Check if this is a recurring contribution
-                    const isRecurring = $('#seventh-trad-recurring').val() === 'yes';
-                    if (isRecurring) {
+                    const currentRecurring = $('#seventh-trad-recurring').val() === 'yes';
+                    if (currentRecurring) {
                         self.showError('Recurring contributions are not yet implemented. Please select "No" for recurring contribution.');
                         return actions.reject();
                     }
@@ -526,7 +524,37 @@
                     console.error('7th Traditioner: PayPal error:', err);
                     self.showError('An error occurred with PayPal. Please try again.');
                 }
-            }).render('#seventh-trad-paypal-button-container');
+            };
+
+            // If recurring, disable card funding
+            if (isRecurring) {
+                buttonConfig.fundingSource = paypal.FUNDING.PAYPAL;
+            }
+
+            // Render the buttons
+            paypal.Buttons(buttonConfig).render('#seventh-trad-paypal-button-container');
+        },
+
+        /**
+         * Initialize submit button and PayPal
+         */
+        initSubmitButton: function() {
+            const self = this;
+
+            // Check if PayPal SDK is available
+            if (typeof paypal === 'undefined') {
+                console.warn('7th Traditioner: PayPal SDK not loaded');
+                return;
+            }
+
+            // Render PayPal buttons initially
+            self.renderPayPalButtons();
+
+            // Re-render buttons when recurring option changes
+            $('#seventh-trad-recurring').on('change', function() {
+                console.log('7th Traditioner: Recurring option changed, re-rendering buttons');
+                self.renderPayPalButtons();
+            });
         },
 
         /**
