@@ -19,35 +19,35 @@
 /* Title */
 .seventh-trad-title {
     margin: 0 0 10px;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
-    color: #1a202c;
+    color: #000000;
     text-align: center;
 }
 
 /* Description */
 .seventh-trad-description {
     margin: 0 0 30px;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #4a5568;
+    font-size: 18px;
+    line-height: 1.7;
+    color: #1a1a1a;
     text-align: center;
 }
 
 /* Tradition Notice */
 .seventh-trad-tradition-notice {
-    background: #edf2f7;
-    border-left: 4px solid #4299e1;
-    padding: 16px 20px;
+    background: #e6f2ff;
+    border-left: 4px solid #0066cc;
+    padding: 18px 22px;
     margin-bottom: 30px;
     border-radius: 4px;
 }
 
 .seventh-trad-tradition-notice p {
     margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #2d3748;
+    font-size: 16px;
+    line-height: 1.7;
+    color: #000000;
 }
 
 /* Messages */
@@ -57,29 +57,30 @@
 
 .seventh-trad-success,
 .seventh-trad-error {
-    padding: 16px 20px;
+    padding: 18px 22px;
     border-radius: 6px;
     margin-bottom: 20px;
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 17px;
+    line-height: 1.6;
     display: none;
+    font-weight: 500;
 }
 
 .seventh-trad-success {
-    background: #c6f6d5;
-    border: 1px solid #9ae6b4;
-    color: #22543d;
+    background: #d4edda;
+    border: 2px solid #28a745;
+    color: #155724;
 }
 
 .seventh-trad-error {
-    background: #fed7d7;
-    border: 1px solid #fc8181;
-    color: #742a2a;
+    background: #f8d7da;
+    border: 2px solid #dc3545;
+    color: #721c24;
 }
 
 /* Form Fields */
 .seventh-trad-field {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
 .seventh-trad-field-row {
@@ -93,31 +94,32 @@
 
 .seventh-trad-field label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-weight: 600;
-    font-size: 14px;
-    color: #2d3748;
+    font-size: 17px;
+    color: #000000;
 }
 
 .seventh-trad-field .required {
-    color: #e53e3e;
+    color: #cc0000;
+    font-weight: 700;
 }
 
 .seventh-trad-field .optional {
     font-weight: 400;
-    color: #718096;
+    color: #333333;
 }
 
 .seventh-trad-input,
 .seventh-trad-select,
 .seventh-trad-textarea {
     width: 100%;
-    padding: 12px 16px;
-    font-size: 16px;
-    line-height: 1.5;
-    color: #2d3748;
+    padding: 14px 16px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #000000;
     background-color: #ffffff;
-    border: 1px solid #cbd5e0;
+    border: 2px solid #666666;
     border-radius: 6px;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     box-sizing: border-box;
@@ -127,21 +129,21 @@
 .seventh-trad-select:focus,
 .seventh-trad-textarea:focus {
     outline: none;
-    border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    border-color: #0066cc;
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.2);
 }
 
 .seventh-trad-textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 100px;
 }
 
 .seventh-trad-help {
     display: block;
-    margin-top: 6px;
-    font-size: 13px;
-    color: #718096;
-    line-height: 1.4;
+    margin-top: 8px;
+    font-size: 15px;
+    color: #333333;
+    line-height: 1.5;
 }
 
 /* PayPal Button Container */
@@ -157,13 +159,13 @@
 }
 
 .seventh-trad-spinner {
-    border: 4px solid #e2e8f0;
-    border-top: 4px solid #4299e1;
+    border: 5px solid #cccccc;
+    border-top: 5px solid #0066cc;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     animation: seventh-trad-spin 1s linear infinite;
-    margin: 0 auto 16px;
+    margin: 0 auto 20px;
 }
 
 @keyframes seventh-trad-spin {
@@ -173,15 +175,16 @@
 
 .seventh-trad-loading p {
     margin: 0;
-    color: #4a5568;
-    font-size: 16px;
+    color: #000000;
+    font-size: 18px;
+    font-weight: 500;
 }
 
 /* Footer */
 .seventh-trad-footer {
     margin-top: 30px;
     padding-top: 30px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 2px solid #cccccc;
     text-align: center;
 }
 
@@ -191,20 +194,20 @@
     justify-content: center;
     gap: 8px;
     margin: 0 0 12px;
-    color: #4a5568;
-    font-size: 14px;
-    font-weight: 500;
+    color: #000000;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 .seventh-trad-secure svg {
-    color: #48bb78;
+    color: #228800;
 }
 
 .seventh-trad-privacy {
     margin: 0;
-    font-size: 13px;
-    color: #718096;
-    line-height: 1.5;
+    font-size: 15px;
+    color: #333333;
+    line-height: 1.6;
 }
 
 /* Responsive */

@@ -109,20 +109,22 @@ function seventh_trad_get_day_name($day_number) {
  */
 function seventh_trad_get_groups() {
     // Check if TSML is active
-    if (!function_exists('tsml_get_groups')) {
+    if (!function_exists('tsml_get_meetings')) {
         return array();
     }
 
-    $tsml_groups = tsml_get_groups();
+    // Get all meetings and extract unique groups
+    $meetings = tsml_get_meetings();
     $groups = array();
 
-    foreach ($tsml_groups as $group_id => $group_data) {
-        if (!empty($group_data['group'])) {
-            $groups[$group_id] = $group_data['group'];
+    foreach ($meetings as $meeting) {
+        if (!empty($meeting['group_id']) && !empty($meeting['group'])) {
+            $groups[$meeting['group_id']] = $meeting['group'];
         }
     }
 
-    // Sort alphabetically
+    // Remove duplicates and sort alphabetically
+    $groups = array_unique($groups);
     asort($groups);
 
     return $groups;
