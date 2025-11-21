@@ -205,6 +205,27 @@
     color: #000000 !important;
 }
 
+.seventh-trad-payment-method-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    background-color: #f5f5f5 !important;
+}
+
+.seventh-trad-payment-method-disabled:hover {
+    border-color: #666666 !important;
+    background-color: #f5f5f5 !important;
+}
+
+.seventh-trad-payment-method-disabled input[type="radio"] {
+    cursor: not-allowed !important;
+}
+
+.seventh-trad-recurring-notice {
+    color: #cc6600;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
 .seventh-trad-payment-method input[type="radio"] {
     width: 20px;
     height: 20px;

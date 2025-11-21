@@ -116,6 +116,33 @@
 
                 $(this).val(value);
             });
+
+            // Recurring contribution change - disable card option if recurring
+            $('#seventh-trad-recurring').on('change', function() {
+                const isRecurring = $(this).val() === 'yes';
+                const $cardMethod = $('#payment-method-card');
+                const $cardInput = $cardMethod.find('input[type="radio"]');
+                const $paypalInput = $('#payment-method-paypal input[type="radio"]');
+
+                if (isRecurring) {
+                    // Disable card option
+                    $cardInput.prop('disabled', true);
+                    $cardMethod.addClass('seventh-trad-payment-method-disabled');
+
+                    // Select PayPal automatically
+                    $paypalInput.prop('checked', true);
+
+                    // Show notice
+                    $('.seventh-trad-recurring-notice').slideDown();
+                } else {
+                    // Enable card option
+                    $cardInput.prop('disabled', false);
+                    $cardMethod.removeClass('seventh-trad-payment-method-disabled');
+
+                    // Hide notice
+                    $('.seventh-trad-recurring-notice').slideUp();
+                }
+            });
         },
 
         /**
