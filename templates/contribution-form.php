@@ -266,30 +266,12 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 ></textarea>
             </div>
 
-            <!-- Payment Method -->
-            <div class="seventh-trad-field">
-                <label>
-                    <?php esc_html_e('Payment Method', '7th-traditioner'); ?>
-                    <span class="required">*</span>
-                </label>
-                <div class="seventh-trad-payment-methods">
-                    <label class="seventh-trad-payment-method" id="payment-method-paypal">
-                        <input type="radio" name="payment_method" value="paypal" checked />
-                        <span><?php esc_html_e('PayPal', '7th-traditioner'); ?></span>
-                    </label>
-                    <label class="seventh-trad-payment-method" id="payment-method-card">
-                        <input type="radio" name="payment_method" value="card" />
-                        <span><?php esc_html_e('Credit/Debit Card', '7th-traditioner'); ?></span>
-                    </label>
-                </div>
-                <small class="seventh-trad-help seventh-trad-recurring-notice" style="display: none;">
-                    <?php esc_html_e('Credit/Debit Card is not available for recurring contributions. Only PayPal supports recurring payments.', '7th-traditioner'); ?>
-                </small>
-            </div>
-
             <!-- PayPal Button Container -->
             <div class="seventh-trad-submit-container">
                 <div id="seventh-trad-paypal-button-container"></div>
+                <small class="seventh-trad-help" style="text-align: center; display: block; margin-top: 10px;">
+                    <?php esc_html_e('All payments are securely processed by PayPal', '7th-traditioner'); ?>
+                </small>
             </div>
 
             <!-- Loading indicator -->

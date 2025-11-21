@@ -141,32 +141,6 @@
                 $(this).val(value);
             });
 
-            // Recurring contribution change - disable card option if recurring
-            $('#seventh-trad-recurring').on('change', function() {
-                const isRecurring = $(this).val() === 'yes';
-                const $cardMethod = $('#payment-method-card');
-                const $cardInput = $cardMethod.find('input[type="radio"]');
-                const $paypalInput = $('#payment-method-paypal input[type="radio"]');
-
-                if (isRecurring) {
-                    // Disable card option
-                    $cardInput.prop('disabled', true);
-                    $cardMethod.addClass('seventh-trad-payment-method-disabled');
-
-                    // Select PayPal automatically
-                    $paypalInput.prop('checked', true);
-
-                    // Show notice
-                    $('.seventh-trad-recurring-notice').slideDown();
-                } else {
-                    // Enable card option
-                    $cardInput.prop('disabled', false);
-                    $cardMethod.removeClass('seventh-trad-payment-method-disabled');
-
-                    // Hide notice
-                    $('.seventh-trad-recurring-notice').slideUp();
-                }
-            });
         },
 
         /**
@@ -461,20 +435,31 @@
 
             // Render PayPal button immediately on page load
             paypal.Buttons({
+                // Style configuration
+                style: {
+                    layout: 'vertical',
+                    color: 'gold',
+                    shape: 'rect',
+                    label: 'paypal'
+                },
+
+                // Disable Pay Later (we don't want people borrowing money to contribute!)
+                fundingSource: paypal.FUNDING.PAYPAL,
+
                 // Validate form before creating order
                 onClick: function(data, actions) {
                     console.log('7th Traditioner: PayPal button clicked');
 
-                    // Check payment method
-                    const paymentMethod = $('input[name="payment_method"]:checked').val();
-                    if (paymentMethod !== 'paypal') {
-                        self.showError('Please select PayPal as your payment method.');
-                        return actions.reject();
-                    }
-
                     // Validate form
                     if (!self.validateForm()) {
                         console.log('7th Traditioner: Form validation failed');
+                        return actions.reject();
+                    }
+
+                    // Check if this is a recurring contribution
+                    const isRecurring = $('#seventh-trad-recurring').val() === 'yes';
+                    if (isRecurring) {
+                        self.showError('Recurring contributions are not yet implemented. Please select "No" for recurring contribution.');
                         return actions.reject();
                     }
 
