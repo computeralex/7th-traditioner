@@ -159,22 +159,7 @@ class Seventh_Traditioner {
             true
         );
 
-        // PayPal SDK (client-side only, no secrets needed)
-        $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
-        $paypal_client_id = ($paypal_mode === 'live')
-            ? get_option('seventh_trad_paypal_live_client_id')
-            : get_option('seventh_trad_paypal_sandbox_client_id');
-
-        if ($paypal_client_id) {
-            $default_currency = get_option('seventh_trad_default_currency', 'USD');
-            wp_enqueue_script(
-                'paypal-sdk',
-                'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id) . '&currency=' . esc_attr($default_currency),
-                array(),
-                null,
-                true
-            );
-        }
+        // PayPal handled server-side via REST API (no client SDK needed)
 
         // reCAPTCHA v3
         $recaptcha_site_key = get_option('seventh_trad_recaptcha_site_key');
