@@ -254,6 +254,38 @@
     font-weight: 500;
 }
 
+/* Submit Button */
+.seventh-trad-submit-container {
+    margin: 30px 0;
+}
+
+.seventh-trad-submit-btn {
+    width: 100%;
+    padding: 18px 24px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: #0070ba;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-height: 60px;
+}
+
+.seventh-trad-submit-btn:hover {
+    background-color: #005a94;
+}
+
+.seventh-trad-submit-btn:active {
+    background-color: #004578;
+}
+
+.seventh-trad-submit-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 /* PayPal Button Container */
 .seventh-trad-paypal-container {
     margin: 30px 0;

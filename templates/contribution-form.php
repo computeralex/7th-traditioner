@@ -281,8 +281,15 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </small>
             </div>
 
-            <!-- PayPal Button Container -->
-            <div id="seventh-trad-paypal-button" class="seventh-trad-paypal-container"></div>
+            <!-- Submit Button -->
+            <div class="seventh-trad-submit-container">
+                <button type="button" id="seventh-trad-submit-btn" class="seventh-trad-submit-btn">
+                    <?php esc_html_e('Contribute Now', '7th-traditioner'); ?>
+                </button>
+            </div>
+
+            <!-- PayPal Button Container (for PayPal SDK) -->
+            <div id="seventh-trad-paypal-button" class="seventh-trad-paypal-container" style="display: none;"></div>
 
             <!-- Loading indicator -->
             <div id="seventh-trad-loading" class="seventh-trad-loading" style="display: none;">

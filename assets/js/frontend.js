@@ -24,6 +24,7 @@
             this.initPayPal();
             this.initReCaptcha();
             this.bindEvents();
+            this.initSubmitButton();
         },
 
         /**
@@ -501,6 +502,46 @@
          */
         resetForm: function() {
             this.form[0].reset();
+        },
+
+        /**
+         * Initialize submit button
+         */
+        initSubmitButton: function() {
+            const self = this;
+
+            $('#seventh-trad-submit-btn').on('click', async function() {
+                // Validate form
+                if (!self.validateForm()) {
+                    return;
+                }
+
+                // Show loading
+                self.showLoading();
+                $(this).prop('disabled', true);
+
+                try {
+                    // Get reCAPTCHA token
+                    const recaptchaToken = await self.getReCaptchaToken();
+
+                    // For now, we'll use PayPal (can be extended for card processing later)
+                    const paymentMethod = $('input[name="payment_method"]:checked').val();
+
+                    if (paymentMethod === 'paypal') {
+                        // Trigger PayPal flow
+                        // Note: For actual implementation, we need to create order via PayPal SDK
+                        self.showError('PayPal integration is being set up. Please use the PayPal button above.');
+                    } else {
+                        self.showError('Credit/Debit card processing is not yet implemented.');
+                    }
+                } catch (error) {
+                    console.error('7th Traditioner: Submit error', error);
+                    self.showError(seventhTradData.strings.error);
+                } finally {
+                    self.hideLoading();
+                    $('#seventh-trad-submit-btn').prop('disabled', false);
+                }
+            });
         }
     };
 
