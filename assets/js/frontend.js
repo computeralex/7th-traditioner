@@ -33,6 +33,12 @@
         bindEvents: function() {
             const self = this;
 
+            // Prevent form submission
+            this.form.on('submit', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
             // Contributor type change
             $('#seventh-trad-contributor-type').on('change', function() {
                 const type = $(this).val();
@@ -512,11 +518,17 @@
 
             $('#seventh-trad-submit-btn').on('click', async function(e) {
                 e.preventDefault();
+                e.stopPropagation();
+
+                console.log('7th Traditioner: Contribute button clicked');
 
                 // Validate form
                 if (!self.validateForm()) {
+                    console.log('7th Traditioner: Form validation failed');
                     return false;
                 }
+
+                console.log('7th Traditioner: Form validation passed');
 
                 // Show loading
                 self.showLoading();
