@@ -177,6 +177,16 @@
     line-height: 1.5;
 }
 
+.seventh-trad-help a {
+    color: #0066cc;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.seventh-trad-help a:hover {
+    color: #004499;
+}
+
 /* Payment Methods */
 .seventh-trad-payment-methods {
     display: flex;

@@ -118,23 +118,7 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                         <option value="4"><?php esc_html_e('Thursday', '7th-traditioner'); ?></option>
                         <option value="5"><?php esc_html_e('Friday', '7th-traditioner'); ?></option>
                         <option value="6"><?php esc_html_e('Saturday', '7th-traditioner'); ?></option>
-                        <option value="other"><?php esc_html_e('Other', '7th-traditioner'); ?></option>
                     </select>
-                </div>
-
-                <!-- Other day text input (shown when "Other" selected) -->
-                <div id="other-day-field" class="seventh-trad-field" style="display: none;">
-                    <label for="seventh-trad-other-day">
-                        <?php esc_html_e('Specify Meeting Day', '7th-traditioner'); ?>
-                        <span class="required">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        id="seventh-trad-other-day"
-                        name="other_day"
-                        class="seventh-trad-input"
-                        placeholder="<?php esc_attr_e('e.g., Varies, Multiple Days, etc.', '7th-traditioner'); ?>"
-                    />
                 </div>
 
                 <div class="seventh-trad-field">
@@ -150,6 +134,28 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                     >
                         <option value=""><?php esc_html_e('-- Select Day First --', '7th-traditioner'); ?></option>
                     </select>
+                    <small class="seventh-trad-help">
+                        <?php esc_html_e('Don\'t see your meeting?', '7th-traditioner'); ?>
+                        <a href="#" id="seventh-trad-add-other-meeting"><?php esc_html_e('Enter manually', '7th-traditioner'); ?></a>
+                    </small>
+                </div>
+
+                <!-- Other meeting text input (shown when "Enter manually" clicked) -->
+                <div id="other-meeting-field" class="seventh-trad-field" style="display: none;">
+                    <label for="seventh-trad-other-meeting">
+                        <?php esc_html_e('Meeting Name', '7th-traditioner'); ?>
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="seventh-trad-other-meeting"
+                        name="other_meeting"
+                        class="seventh-trad-input"
+                        placeholder="<?php esc_attr_e('Enter your meeting name', '7th-traditioner'); ?>"
+                    />
+                    <small class="seventh-trad-help">
+                        <a href="#" id="seventh-trad-select-from-list"><?php esc_html_e('Select from list instead', '7th-traditioner'); ?></a>
+                    </small>
                 </div>
 
                 <!-- Group ID (Optional) -->

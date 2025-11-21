@@ -46,28 +46,32 @@
                 }
             });
 
-            // Meeting day change - load meetings for that day or show "Other" field
+            // Meeting day change - load meetings for that day
             $('#seventh-trad-meeting-day').on('change', function() {
                 const day = $(this).val();
-
-                if (day === 'other') {
-                    // Show "Other" text input and disable meeting dropdown
-                    $('#other-day-field').slideDown();
-                    $('#seventh-trad-other-day').prop('required', true);
-                    $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select a specific day to choose meeting --</option>');
-                    $('#seventh-trad-meeting').prop('required', false);
+                if (day !== '') {
+                    self.loadMeetings(day);
                 } else {
-                    // Hide "Other" text input
-                    $('#other-day-field').slideUp();
-                    $('#seventh-trad-other-day').prop('required', false);
-                    $('#seventh-trad-meeting').prop('required', true);
-
-                    if (day !== '') {
-                        self.loadMeetings(day);
-                    } else {
-                        $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select Day First --</option>');
-                    }
+                    $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select Day First --</option>');
                 }
+            });
+
+            // Toggle to manual meeting entry
+            $('#seventh-trad-add-other-meeting').on('click', function(e) {
+                e.preventDefault();
+                $('#seventh-trad-meeting').parent().slideUp();
+                $('#other-meeting-field').slideDown();
+                $('#seventh-trad-meeting').prop('required', false);
+                $('#seventh-trad-other-meeting').prop('required', true);
+            });
+
+            // Toggle back to meeting list selection
+            $('#seventh-trad-select-from-list').on('click', function(e) {
+                e.preventDefault();
+                $('#other-meeting-field').slideUp();
+                $('#seventh-trad-meeting').parent().slideDown();
+                $('#seventh-trad-other-meeting').prop('required', false);
+                $('#seventh-trad-meeting').prop('required', true);
             });
 
             // Currency change - update symbol and decimal places
@@ -315,15 +319,17 @@
                     return false;
                 }
 
-                // If "Other" day selected, validate the text input
-                if (day === 'other') {
-                    const otherDay = $('#seventh-trad-other-day').val().trim();
-                    if (!otherDay) {
-                        this.showError('Please specify the meeting day');
+                // Check if manual entry mode is active
+                const isManualEntry = $('#other-meeting-field').is(':visible');
+
+                if (isManualEntry) {
+                    const otherMeeting = $('#seventh-trad-other-meeting').val().trim();
+                    if (!otherMeeting) {
+                        this.showError('Please enter your meeting name');
                         return false;
                     }
                 } else {
-                    // For specific days, validate meeting selection
+                    // Validate dropdown selection
                     const meeting = $('#seventh-trad-meeting').val();
                     if (!meeting) {
                         this.showError('Please select your meeting');
@@ -385,13 +391,20 @@
 
             // Add group-specific fields if contributing on behalf of group
             if (contributorType === 'group') {
-                if (meetingDay === 'other') {
-                    formData.meeting_day = $('#seventh-trad-other-day').val();
+                formData.meeting_day = meetingDay;
+
+                // Check if manual entry mode is active
+                const isManualEntry = $('#other-meeting-field').is(':visible');
+
+                if (isManualEntry) {
+                    formData.meeting_name = $('#seventh-trad-other-meeting').val();
                     formData.meeting_id = '';
                 } else {
-                    formData.meeting_day = meetingDay;
+                    const $selectedMeeting = $('#seventh-trad-meeting option:selected');
                     formData.meeting_id = $('#seventh-trad-meeting').val();
+                    formData.meeting_name = $selectedMeeting.text();
                 }
+
                 formData.group_id = $('#seventh-trad-group-id').val();
             }
 
