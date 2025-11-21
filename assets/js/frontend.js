@@ -46,13 +46,27 @@
                 }
             });
 
-            // Meeting day change - load meetings for that day
+            // Meeting day change - load meetings for that day or show "Other" field
             $('#seventh-trad-meeting-day').on('change', function() {
                 const day = $(this).val();
-                if (day !== '') {
-                    self.loadMeetings(day);
+
+                if (day === 'other') {
+                    // Show "Other" text input and disable meeting dropdown
+                    $('#other-day-field').slideDown();
+                    $('#seventh-trad-other-day').prop('required', true);
+                    $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select a specific day to choose meeting --</option>');
+                    $('#seventh-trad-meeting').prop('required', false);
                 } else {
-                    $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select Day First --</option>');
+                    // Hide "Other" text input
+                    $('#other-day-field').slideUp();
+                    $('#seventh-trad-other-day').prop('required', false);
+                    $('#seventh-trad-meeting').prop('required', true);
+
+                    if (day !== '') {
+                        self.loadMeetings(day);
+                    } else {
+                        $('#seventh-trad-meeting').prop('disabled', true).html('<option value="">-- Select Day First --</option>');
+                    }
                 }
             });
 
@@ -268,15 +282,26 @@
             // Validate group fields if contributing on behalf of group
             if (contributorType === 'group') {
                 const day = $('#seventh-trad-meeting-day').val();
-                const meeting = $('#seventh-trad-meeting').val();
 
                 if (!day) {
                     this.showError('Please select the meeting day');
                     return false;
                 }
-                if (!meeting) {
-                    this.showError('Please select your meeting');
-                    return false;
+
+                // If "Other" day selected, validate the text input
+                if (day === 'other') {
+                    const otherDay = $('#seventh-trad-other-day').val().trim();
+                    if (!otherDay) {
+                        this.showError('Please specify the meeting day');
+                        return false;
+                    }
+                } else {
+                    // For specific days, validate meeting selection
+                    const meeting = $('#seventh-trad-meeting').val();
+                    if (!meeting) {
+                        this.showError('Please select your meeting');
+                        return false;
+                    }
                 }
             }
 
@@ -311,6 +336,9 @@
         saveContribution: async function(orderData, recaptchaToken) {
             const self = this;
 
+            const contributorType = $('#seventh-trad-contributor-type').val();
+            const meetingDay = $('#seventh-trad-meeting-day').val();
+
             const formData = {
                 action: 'seventh_trad_save_contribution',
                 nonce: seventhTradData.nonce,
@@ -320,14 +348,25 @@
                 member_name: $('#seventh-trad-name').val(),
                 member_email: $('#seventh-trad-email').val(),
                 phone: $('#seventh-trad-phone').val(),
-                contributor_type: $('#seventh-trad-contributor-type').val(),
-                meeting_id: $('#seventh-trad-meeting').val(),
+                contributor_type: contributorType,
                 amount: $('#seventh-trad-amount').val(),
                 currency: $('#seventh-trad-currency').val(),
                 recurring: $('#seventh-trad-recurring').val(),
                 paypal_status: orderData.status,
                 custom_notes: $('#seventh-trad-notes').val()
             };
+
+            // Add group-specific fields if contributing on behalf of group
+            if (contributorType === 'group') {
+                if (meetingDay === 'other') {
+                    formData.meeting_day = $('#seventh-trad-other-day').val();
+                    formData.meeting_id = '';
+                } else {
+                    formData.meeting_day = meetingDay;
+                    formData.meeting_id = $('#seventh-trad-meeting').val();
+                }
+                formData.group_id = $('#seventh-trad-group-id').val();
+            }
 
             $.ajax({
                 url: seventhTradData.ajax_url,
