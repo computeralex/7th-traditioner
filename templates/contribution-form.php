@@ -36,13 +36,14 @@ $fellowship_name = seventh_trad_get_fellowship_name();
             <div class="seventh-trad-field">
                 <label for="seventh-trad-member-name">
                     <?php esc_html_e('Your Name', '7th-traditioner'); ?>
-                    <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
+                    <span class="required">*</span>
                 </label>
                 <input
                     type="text"
                     id="seventh-trad-member-name"
                     name="member_name"
                     class="seventh-trad-input"
+                    required
                     placeholder="<?php esc_attr_e('First Name, First & Last Initial', '7th-traditioner'); ?>"
                 />
                 <small class="seventh-trad-help">

@@ -143,9 +143,15 @@
          * Validate form
          */
         validateForm: function() {
+            const name = $('#seventh-trad-member-name').val().trim();
             const groupId = $('#seventh-trad-group').val();
             const email = $('#seventh-trad-member-email').val();
             const amount = parseFloat($('#seventh-trad-amount').val());
+
+            if (!name) {
+                this.showError('Please enter your name');
+                return false;
+            }
 
             if (!groupId) {
                 this.showError(seventhTradData.strings.select_group);
@@ -232,8 +238,8 @@
             const $success = $('.seventh-trad-success');
             const $error = $('.seventh-trad-error');
 
-            $error.hide();
-            $success.html(message).slideDown();
+            $error.hide().css('display', 'none');
+            $success.html(message).css('display', 'block').hide().slideDown();
 
             // Scroll to message
             $('html, body').animate({
@@ -253,8 +259,8 @@
             const $error = $('.seventh-trad-error');
             const $success = $('.seventh-trad-success');
 
-            $success.hide();
-            $error.html(message).slideDown();
+            $success.hide().css('display', 'none');
+            $error.html(message).css('display', 'block').hide().slideDown();
 
             // Scroll to message
             $('html, body').animate({

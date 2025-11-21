@@ -36,7 +36,7 @@ class Seventh_Trad_Contribution_Handler {
         }
 
         // Validate required fields
-        $required_fields = array('transaction_id', 'member_email', 'group_id', 'amount', 'currency');
+        $required_fields = array('transaction_id', 'member_name', 'member_email', 'group_id', 'amount', 'currency');
         foreach ($required_fields as $field) {
             if (empty($_POST[$field])) {
                 wp_send_json_error(array(
@@ -51,6 +51,13 @@ class Seventh_Trad_Contribution_Handler {
 
         // Sanitize data
         $data = seventh_trad_sanitize_contribution_data($_POST);
+
+        // Validate name
+        if (empty($data['member_name']) || strlen(trim($data['member_name'])) < 2) {
+            wp_send_json_error(array(
+                'message' => __('Please provide your name.', '7th-traditioner')
+            ));
+        }
 
         // Validate email
         if (!is_email($data['member_email'])) {
