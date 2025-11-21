@@ -98,7 +98,6 @@ class Seventh_Trad_Settings {
      */
     private static function render_general_tab() {
         $service_body_name = get_option('seventh_trad_service_body_name', get_bloginfo('name'));
-        $logo_url = get_option('seventh_trad_logo_url');
         $default_currency = get_option('seventh_trad_default_currency', 'USD');
         $currencies = seventh_trad_get_supported_currencies();
         ?>
@@ -112,20 +111,6 @@ class Seventh_Trad_Settings {
                     <p class="description">
                         <?php esc_html_e('This name appears in emails and on the contribution form', '7th-traditioner'); ?>
                     </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="logo_url"><?php esc_html_e('Logo URL', '7th-traditioner'); ?></label>
-                </th>
-                <td>
-                    <input type="url" id="logo_url" name="logo_url" value="<?php echo esc_url($logo_url); ?>" class="regular-text" placeholder="https://" />
-                    <p class="description">
-                        <?php esc_html_e('Logo to display in receipt emails. Leave empty to use site icon.', '7th-traditioner'); ?>
-                    </p>
-                    <?php if ($logo_url) : ?>
-                        <p><img src="<?php echo esc_url($logo_url); ?>" alt="Logo preview" style="max-width: 200px; height: auto; margin-top: 10px;" /></p>
-                    <?php endif; ?>
                 </td>
             </tr>
             <tr>
@@ -405,10 +390,6 @@ class Seventh_Trad_Settings {
         // Save settings
         if (isset($_POST['service_body_name'])) {
             update_option('seventh_trad_service_body_name', sanitize_text_field($_POST['service_body_name']));
-        }
-
-        if (isset($_POST['logo_url'])) {
-            update_option('seventh_trad_logo_url', esc_url_raw($_POST['logo_url']));
         }
 
         if (isset($_POST['default_currency'])) {

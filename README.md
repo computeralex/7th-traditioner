@@ -51,8 +51,7 @@ A 7th Tradition contribution system for 12-step fellowships. Integrates with TSM
 
 1. Go to **7th Traditioner > General**
 2. Set your **Fellowship / Service Body Name** (e.g., "Central Area RCA")
-3. Optionally add a **Logo URL** for email receipts
-4. Select your **Default Currency**
+3. Select your **Default Currency**
 
 ### PayPal Setup
 
@@ -202,7 +201,6 @@ Receipts are automatically sent and include:
 - Date and transaction ID
 - Optional custom notes
 - 7th Tradition statement
-- Fellowship logo (if configured)
 
 ### Improving Email Deliverability
 

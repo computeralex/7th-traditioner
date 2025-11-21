@@ -62,10 +62,6 @@ class Seventh_Trad_Email_Handler {
      */
     private static function get_receipt_template($contribution) {
         $fellowship_name = seventh_trad_get_fellowship_name();
-        $logo_url = get_option('seventh_trad_logo_url');
-        if (empty($logo_url)) {
-            $logo_url = get_site_icon_url(200);
-        }
 
         $formatted_amount = seventh_trad_format_amount($contribution->amount, $contribution->currency);
         $date = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($contribution->contribution_date));
@@ -88,9 +84,6 @@ class Seventh_Trad_Email_Handler {
                             <!-- Header -->
                             <tr>
                                 <td style="padding: 40px 40px 20px; text-align: center; background-color: #4a5568; border-radius: 8px 8px 0 0;">
-                                    <?php if ($logo_url) : ?>
-                                        <img src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($fellowship_name); ?>" style="max-width: 150px; height: auto; margin-bottom: 20px;">
-                                    <?php endif; ?>
                                     <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
                                         <?php echo esc_html__('Contribution Receipt', '7th-traditioner'); ?>
                                     </h1>
