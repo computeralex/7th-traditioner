@@ -184,10 +184,10 @@
                             options += '<option value="' + meeting.id + '" data-group-name="' +
                                       (meeting.group || '') + '">' + meetingLabel + '</option>';
                         });
-                        options += '<option value="other">Other (Enter Manually)</option>';
+                        options += '<option value="other">Other</option>';
                         $meetingSelect.html(options).prop('disabled', false);
                     } else {
-                        $meetingSelect.html('<option value="">No meetings found for this day</option><option value="other">Other (Enter Manually)</option>');
+                        $meetingSelect.html('<option value="">No meetings found for this day</option><option value="other">Other</option>');
                     }
                 },
                 error: function() {
