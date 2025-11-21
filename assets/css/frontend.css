@@ -254,36 +254,58 @@
     font-weight: 500;
 }
 
-/* Submit Button */
+/* Submit Button - Override Elementor and other theme styles */
 .seventh-trad-submit-container {
-    margin: 30px 0;
+    margin: 30px 0 !important;
 }
 
 .seventh-trad-submit-btn {
-    width: 100%;
-    padding: 18px 24px;
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffffff;
-    background-color: #0070ba;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    min-height: 60px;
+    width: 100% !important;
+    padding: 18px 24px !important;
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    background-color: #0070ba !important;
+    background-image: none !important;
+    border: 2px solid #0070ba !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s ease !important;
+    min-height: 60px !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    display: block !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif !important;
 }
 
 .seventh-trad-submit-btn:hover {
-    background-color: #005a94;
+    background-color: #005a94 !important;
+    border-color: #005a94 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 .seventh-trad-submit-btn:active {
-    background-color: #004578;
+    background-color: #004578 !important;
+    border-color: #004578 !important;
+    color: #ffffff !important;
+}
+
+.seventh-trad-submit-btn:focus {
+    outline: 3px solid #63b3ed !important;
+    outline-offset: 2px !important;
 }
 
 .seventh-trad-submit-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
+    background-color: #cccccc !important;
+    border-color: #cccccc !important;
+    color: #666666 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
 }
 
 /* PayPal Button Container */
