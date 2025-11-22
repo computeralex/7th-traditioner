@@ -486,8 +486,15 @@
                     const amount = $('#seventh-trad-amount').val();
                     const currency = $('#seventh-trad-currency').val();
                     const description = self.getOrderDescription();
+                    const email = $('#seventh-trad-email').val();
+                    const name = $('#seventh-trad-name').val();
 
                     console.log('7th Traditioner: Creating order - Amount:', amount, 'Currency:', currency);
+
+                    // Split name into first and last (best effort)
+                    const nameParts = name.trim().split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join(' ') || '';
 
                     // Create order client-side (NO SERVER SECRETS NEEDED!)
                     return actions.order.create({
@@ -498,6 +505,13 @@
                             },
                             description: description
                         }],
+                        payer: {
+                            email_address: email,
+                            name: {
+                                given_name: firstName,
+                                surname: lastName
+                            }
+                        },
                         application_context: {
                             shipping_preference: 'NO_SHIPPING'
                         }
@@ -536,15 +550,18 @@
         getOrderDescription: function() {
             const contributorType = $('#seventh-trad-contributor-type').val();
             if (contributorType === 'group') {
+                const meetingDay = $('#seventh-trad-meeting-day option:selected').text();
                 const isManualEntry = $('#other-meeting-field').is(':visible');
+
                 if (isManualEntry) {
-                    return '7th Tradition Contribution - ' + $('#seventh-trad-other-meeting').val();
+                    const meetingName = $('#seventh-trad-other-meeting').val();
+                    return '7th Tradition - Group: ' + meetingName + ' (' + meetingDay + ')';
                 } else {
                     const meetingName = $('#seventh-trad-meeting option:selected').text();
-                    return '7th Tradition Contribution - ' + meetingName;
+                    return '7th Tradition - Group: ' + meetingName;
                 }
             }
-            return '7th Tradition Contribution';
+            return '7th Tradition - Individual Contribution';
         }
     };
 
