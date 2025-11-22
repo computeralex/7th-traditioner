@@ -16,9 +16,10 @@ $enabled_currency_codes = get_option('seventh_trad_enabled_currencies', array_ke
 $currencies = array_intersect_key($all_currencies, array_flip($enabled_currency_codes));
 $default_currency = get_option('seventh_trad_default_currency', 'USD');
 $fellowship_name = seventh_trad_get_fellowship_name();
+$color_mode = get_option('seventh_trad_color_mode', 'auto');
 ?>
 
-<div class="seventh-trad-container">
+<div class="seventh-trad-container" data-color-mode="<?php echo esc_attr($color_mode); ?>">
     <div class="seventh-trad-form-wrapper">
         <?php if (!empty($atts['title'])) : ?>
             <h2 class="seventh-trad-title"><?php echo esc_html($atts['title']); ?></h2>
@@ -176,6 +177,7 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                         placeholder="<?php esc_attr_e('Enter your meeting name', '7th-traditioner'); ?>"
                     />
                     <small class="seventh-trad-help">
+                        <?php esc_html_e('Is your meeting listed?', '7th-traditioner'); ?>
                         <a href="#" id="seventh-trad-select-from-list"><?php esc_html_e('Select from list instead', '7th-traditioner'); ?></a>
                     </small>
                 </div>
@@ -264,8 +266,10 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                     name="notes"
                     class="seventh-trad-textarea"
                     rows="3"
+                    maxlength="127"
                     placeholder="<?php esc_attr_e('In memory of, gratitude, etc.', '7th-traditioner'); ?>"
                 ></textarea>
+                <small class="seventh-trad-help"><?php esc_html_e('Maximum 127 characters', '7th-traditioner'); ?></small>
             </div>
 
             <!-- Hidden fields -->

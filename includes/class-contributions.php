@@ -55,7 +55,7 @@ class Seventh_Trad_Contributions {
             <h1><?php echo esc_html__('Contributions', '7th-traditioner'); ?></h1>
 
             <!-- Filters -->
-            <div class="tablenav top">
+            <div class="tablenav top" style="margin-bottom: 40px;">
                 <form method="get" action="">
                     <input type="hidden" name="page" value="seventh-traditioner" />
 
@@ -114,10 +114,10 @@ class Seventh_Trad_Contributions {
                             <tr>
                                 <td><?php echo esc_html($contribution->member_name); ?></td>
                                 <td><?php echo esc_html($contribution->member_email); ?></td>
-                                <td><?php echo esc_html($contribution->member_phone ?: '—'); ?></td>
-                                <td><?php echo esc_html($contribution->contribution_type === 'group' ? __('Group', '7th-traditioner') : __('Individual', '7th-traditioner')); ?></td>
+                                <td><?php echo esc_html(!empty($contribution->member_phone) ? $contribution->member_phone : '—'); ?></td>
+                                <td><?php echo esc_html((!empty($contribution->contribution_type) && $contribution->contribution_type === 'group') ? __('Group', '7th-traditioner') : __('Individual', '7th-traditioner')); ?></td>
                                 <td>
-                                    <?php if ($contribution->contribution_type === 'group' && $contribution->group_name) : ?>
+                                    <?php if (!empty($contribution->contribution_type) && $contribution->contribution_type === 'group' && !empty($contribution->group_name)) : ?>
                                         <?php echo esc_html($contribution->group_name); ?>
                                     <?php else : ?>
                                         —
@@ -221,9 +221,11 @@ class Seventh_Trad_Contributions {
 
         $arrow = '';
         if ($current_sort === $column) {
-            $arrow = $current_order === 'ASC' ? ' ▲' : ' ▼';
+            $arrow = $current_order === 'ASC' ? ' <span style="color: #2271b1;">▲</span>' : ' <span style="color: #2271b1;">▼</span>';
+        } else {
+            $arrow = ' <span style="color: #ddd;">▲▼</span>';
         }
 
-        echo '<a href="' . esc_url($url) . '">' . esc_html($label) . $arrow . '</a>';
+        echo '<a href="' . esc_url($url) . '" style="text-decoration: none;">' . esc_html($label) . $arrow . '</a>';
     }
 }

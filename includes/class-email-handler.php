@@ -28,19 +28,22 @@ class Seventh_Trad_Email_Handler {
 
         $to = $contribution->member_email;
         $fellowship_name = seventh_trad_get_fellowship_name();
-        $subject = sprintf(
-            /* translators: %s: Fellowship name */
-            __('Contribution Receipt - %s', '7th-traditioner'),
-            $fellowship_name
-        );
+
+        // Get custom email subject or use default
+        $email_subject = get_option('seventh_trad_email_subject', 'Contribution Receipt');
+        $subject = $email_subject . ' - ' . $fellowship_name;
 
         // Build email content
         $message = self::get_receipt_template($contribution);
 
+        // Get custom from address and name
+        $from_name = get_option('seventh_trad_email_from_name', $fellowship_name);
+        $from_address = get_option('seventh_trad_email_from_address', get_option('admin_email'));
+
         // Email headers
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
-            'From: ' . $fellowship_name . ' <' . get_option('admin_email') . '>',
+            'From: ' . $from_name . ' <' . $from_address . '>',
         );
 
         // Send email
@@ -64,7 +67,10 @@ class Seventh_Trad_Email_Handler {
         $fellowship_name = seventh_trad_get_fellowship_name();
 
         $formatted_amount = seventh_trad_format_amount($contribution->amount, $contribution->currency);
-        $date = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($contribution->contribution_date));
+        $date = date_i18n(get_option('date_format'), strtotime($contribution->contribution_date));
+
+        // Get custom email title or use default
+        $email_title = get_option('seventh_trad_email_title', 'Contribution Receipt');
 
         ob_start();
         ?>
@@ -73,7 +79,7 @@ class Seventh_Trad_Email_Handler {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title><?php echo esc_html__('Contribution Receipt', '7th-traditioner'); ?></title>
+            <title><?php echo esc_html($email_title); ?></title>
         </head>
         <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f4f4f4;">
@@ -85,7 +91,7 @@ class Seventh_Trad_Email_Handler {
                             <tr>
                                 <td style="padding: 40px 40px 20px; text-align: center; background-color: #4a5568; border-radius: 8px 8px 0 0;">
                                     <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
-                                        <?php echo esc_html__('Contribution Receipt', '7th-traditioner'); ?>
+                                        <?php echo esc_html($email_title); ?>
                                     </h1>
                                 </td>
                             </tr>
@@ -111,7 +117,7 @@ class Seventh_Trad_Email_Handler {
                                         <?php
                                         printf(
                                             /* translators: %s: Fellowship name */
-                                            esc_html__('Thank you for your contribution to %s. Your support helps us maintain our commitment to the 7th Tradition of being fully self-supporting through member contributions.', '7th-traditioner'),
+                                            esc_html__('Thank you for your contribution to %s.', '7th-traditioner'),
                                             '<strong>' . esc_html($fellowship_name) . '</strong>'
                                         );
                                         ?>
@@ -123,23 +129,25 @@ class Seventh_Trad_Email_Handler {
                                             <td style="padding: 10px 0;">
                                                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                                                     <tr>
-                                                        <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                        <td style="color: #000000; font-size: 14px; padding: 8px 0;">
                                                             <?php echo esc_html__('Amount:', '7th-traditioner'); ?>
                                                         </td>
                                                         <td style="color: #2d3748; font-size: 18px; font-weight: bold; text-align: right; padding: 8px 0;">
                                                             <?php echo esc_html($formatted_amount); ?>
                                                         </td>
                                                     </tr>
+                                                    <?php if ($contribution->contribution_type === 'group' && !empty($contribution->group_name)) : ?>
                                                     <tr>
-                                                        <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                        <td style="color: #000000; font-size: 14px; padding: 8px 0;">
                                                             <?php echo esc_html__('Group:', '7th-traditioner'); ?>
                                                         </td>
                                                         <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
                                                             <?php echo esc_html($contribution->group_name); ?>
                                                         </td>
                                                     </tr>
+                                                    <?php endif; ?>
                                                     <tr>
-                                                        <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                        <td style="color: #000000; font-size: 14px; padding: 8px 0;">
                                                             <?php echo esc_html__('Date:', '7th-traditioner'); ?>
                                                         </td>
                                                         <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
@@ -147,8 +155,8 @@ class Seventh_Trad_Email_Handler {
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <td style="color: #718096; font-size: 14px; padding: 8px 0;">
-                                                            <?php echo esc_html__('Transaction ID:', '7th-traditioner'); ?>
+                                                        <td style="color: #000000; font-size: 14px; padding: 8px 0;">
+                                                            <?php echo esc_html__('PayPal Transaction ID:', '7th-traditioner'); ?>
                                                         </td>
                                                         <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0; font-family: monospace;">
                                                             <?php echo esc_html($contribution->transaction_id); ?>
@@ -156,7 +164,7 @@ class Seventh_Trad_Email_Handler {
                                                     </tr>
                                                     <?php if (!empty($contribution->custom_notes)) : ?>
                                                     <tr>
-                                                        <td colspan="2" style="color: #718096; font-size: 14px; padding: 16px 0 8px;">
+                                                        <td colspan="2" style="color: #000000; font-size: 14px; padding: 16px 0 8px;">
                                                             <?php echo esc_html__('Notes:', '7th-traditioner'); ?>
                                                         </td>
                                                     </tr>
@@ -179,7 +187,7 @@ class Seventh_Trad_Email_Handler {
                                         </p>
                                     </div>
 
-                                    <p style="margin: 0; color: #718096; font-size: 14px; line-height: 1.6;">
+                                    <p style="margin: 0; color: #000000; font-size: 14px; line-height: 1.6;">
                                         <?php echo esc_html__('Please retain this receipt for your records. If you have any questions about your contribution, please contact us.', '7th-traditioner'); ?>
                                     </p>
                                 </td>
@@ -189,7 +197,7 @@ class Seventh_Trad_Email_Handler {
                             <tr>
                                 <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; text-align: center;">
                                     <p style="margin: 0; color: #718096; font-size: 14px;">
-                                        <a href="<?php echo esc_url(home_url('/')); ?>" style="color: #4299e1; text-decoration: none;">
+                                        <a href="<?php echo esc_url(home_url('/')); ?>" style="color: #4299e1; text-decoration: underline;">
                                             <?php echo esc_html($fellowship_name); ?>
                                         </a>
                                     </p>

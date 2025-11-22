@@ -174,7 +174,8 @@
                             const timeFormatted = meeting.time_formatted || '';
                             const meetingLabel = timeFormatted + ' - ' + meeting.name;
                             options += '<option value="' + meeting.id + '" data-group-name="' +
-                                      (meeting.group || '') + '">' + meetingLabel + '</option>';
+                                      (meeting.group || '') + '" data-time="' + timeFormatted + '">' +
+                                      meetingLabel + '</option>';
                         });
                         options += '<option value="other">Other</option>';
                         $meetingSelect.html(options).prop('disabled', false);
@@ -371,24 +372,36 @@
         },
 
         /**
-         * Show success message
+         * Show success message - replaces entire form
          */
         showSuccess: function(message) {
-            const $success = $('.seventh-trad-success');
-            const $error = $('.seventh-trad-error');
+            // Fade out the form
+            $('.seventh-trad-form').fadeOut(400, function() {
+                // Replace with success message
+                const successHTML = `
+                    <div class="seventh-trad-success-screen" style="text-align: center; padding: 60px 20px;">
+                        <div style="margin-bottom: 30px;">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="font-size: 32px; font-weight: 700; color: #28a745; margin: 0 0 20px;">Thank You!</h2>
+                        <p style="font-size: 20px; line-height: 1.6; color: #000000; margin: 0 0 30px;">${message}</p>
+                        <p style="font-size: 16px; color: #666666; margin: 0 0 40px;">A receipt has been sent to your email address.</p>
+                        <button type="button" class="seventh-trad-submit-btn" onclick="location.reload();" style="max-width: 300px; margin: 0 auto;">
+                            Make Another Contribution
+                        </button>
+                    </div>
+                `;
 
-            $error.hide().css('display', 'none');
-            $success.html(message).css('display', 'block').hide().slideDown();
+                $(this).html(successHTML).fadeIn(400);
 
-            // Scroll to message
-            $('html, body').animate({
-                scrollTop: $success.offset().top - 100
-            }, 500);
-
-            // Auto-hide after 10 seconds
-            setTimeout(function() {
-                $success.slideUp();
-            }, 10000);
+                // Scroll to top of success message
+                $('html, body').animate({
+                    scrollTop: $('.seventh-trad-form-wrapper').offset().top - 100
+                }, 500);
+            });
         },
 
         /**
@@ -497,21 +510,35 @@
                     // Get form data
                     const amount = $('#seventh-trad-amount').val();
                     const currency = $('#seventh-trad-currency').val();
-                    const description = self.getOrderDescription();
+                    const itemDetails = self.getItemDetails();
                     const email = $('#seventh-trad-email').val();
                     const firstName = $('#seventh-trad-first-name').val();
                     const lastName = $('#seventh-trad-last-name').val();
 
                     console.log('7th Traditioner: Creating order - Amount:', amount, 'Currency:', currency);
 
-                    // Build order object
+                    // Build order object with item breakdown
                     const orderData = {
                         purchase_units: [{
                             amount: {
                                 value: amount,
-                                currency_code: currency
+                                currency_code: currency,
+                                breakdown: {
+                                    item_total: {
+                                        value: amount,
+                                        currency_code: currency
+                                    }
+                                }
                             },
-                            description: description
+                            items: [{
+                                name: itemDetails.name,
+                                description: itemDetails.description,
+                                unit_amount: {
+                                    value: amount,
+                                    currency_code: currency
+                                },
+                                quantity: '1'
+                            }]
                         }],
                         application_context: {
                             shipping_preference: 'NO_SHIPPING'
@@ -574,23 +601,45 @@
         },
 
         /**
-         * Get order description
+         * Get item details for PayPal (name and description)
          */
-        getOrderDescription: function() {
+        getItemDetails: function() {
             const contributorType = $('#seventh-trad-contributor-type').val();
+            const notes = $('#seventh-trad-notes').val().trim();
+            let itemName = '';
+            let itemDescription = '';
+
             if (contributorType === 'group') {
                 const meetingDay = $('#seventh-trad-meeting-day option:selected').text();
                 const isManualEntry = $('#other-meeting-field').is(':visible');
 
+                // Abbreviate day name (Monday -> Mon, Tuesday -> Tue, etc.)
+                const dayAbbrev = meetingDay.substring(0, 3);
+
                 if (isManualEntry) {
                     const meetingName = $('#seventh-trad-other-meeting').val();
-                    return '7th Tradition - Group: ' + meetingName + ' (' + meetingDay + ')';
+                    const meetingTime = $('#seventh-trad-meeting-time').val() || '';
+                    itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingTime + ' ' + meetingName;
                 } else {
-                    const meetingName = $('#seventh-trad-meeting option:selected').text();
-                    return '7th Tradition - Group: ' + meetingName;
+                    const $selectedMeeting = $('#seventh-trad-meeting option:selected');
+                    const meetingName = $selectedMeeting.text();
+                    const meetingTime = $selectedMeeting.data('time') || '';
+                    itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingTime + ' ' + meetingName;
                 }
+            } else {
+                itemName = '7th Trad Individual';
             }
-            return '7th Tradition - Individual Contribution';
+
+            // Description is just the notes field (already limited to 127 chars in HTML)
+            // But safety check in case someone bypasses client-side validation
+            if (notes) {
+                itemDescription = notes.substring(0, 127);
+            }
+
+            return {
+                name: itemName.substring(0, 127), // Safety check for name too
+                description: itemDescription
+            };
         }
     };
 

@@ -197,6 +197,22 @@ class Seventh_Trad_Settings {
                     </p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row">
+                    <label for="color_mode"><?php esc_html_e('Form Color Mode', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <?php $color_mode = get_option('seventh_trad_color_mode', 'auto'); ?>
+                    <select id="color_mode" name="color_mode" class="regular-text">
+                        <option value="auto" <?php selected($color_mode, 'auto'); ?>><?php esc_html_e('Auto (Follow System Preference)', '7th-traditioner'); ?></option>
+                        <option value="light" <?php selected($color_mode, 'light'); ?>><?php esc_html_e('Light Mode', '7th-traditioner'); ?></option>
+                        <option value="dark" <?php selected($color_mode, 'dark'); ?>><?php esc_html_e('Dark Mode', '7th-traditioner'); ?></option>
+                    </select>
+                    <p class="description">
+                        <?php esc_html_e('Choose the color scheme for the contribution form. Auto will use the visitor\'s system preference.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
         </table>
 
         <h2><?php esc_html_e('Shortcode Usage', '7th-traditioner'); ?></h2>
@@ -382,19 +398,69 @@ class Seventh_Trad_Settings {
      * Render Email tab
      */
     private static function render_email_tab() {
+        $email_subject = get_option('seventh_trad_email_subject', 'Contribution Receipt');
+        $email_title = get_option('seventh_trad_email_title', 'Contribution Receipt');
+        $email_from_address = get_option('seventh_trad_email_from_address', get_option('admin_email'));
+        $email_from_name = get_option('seventh_trad_email_from_name', seventh_trad_get_fellowship_name());
         ?>
         <p><?php esc_html_e('Email receipts are automatically sent to contributors after a successful contribution.', '7th-traditioner'); ?></p>
 
+        <h3><?php esc_html_e('Email Customization', '7th-traditioner'); ?></h3>
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <label for="email_from_name"><?php esc_html_e('From Name', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="email_from_name" name="email_from_name" value="<?php echo esc_attr($email_from_name); ?>" class="regular-text" />
+                    <p class="description">
+                        <?php esc_html_e('The name that appears as the email sender.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="email_from_address"><?php esc_html_e('From Email Address', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="email" id="email_from_address" name="email_from_address" value="<?php echo esc_attr($email_from_address); ?>" class="regular-text" />
+                    <p class="description">
+                        <?php esc_html_e('The email address that receipts will be sent from.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="email_subject"><?php esc_html_e('Email Subject Line', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="email_subject" name="email_subject" value="<?php echo esc_attr($email_subject); ?>" class="regular-text" />
+                    <p class="description">
+                        <?php esc_html_e('This appears in the recipient\'s inbox. Consider using discrete wording if needed.', '7th-traditioner'); ?>
+                        <br>
+                        <?php esc_html_e('Default: "Contribution Receipt"', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="email_title"><?php esc_html_e('Email Header Title', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="email_title" name="email_title" value="<?php echo esc_attr($email_title); ?>" class="regular-text" />
+                    <p class="description">
+                        <?php esc_html_e('This appears at the top of the email body. Can be the same as subject or different.', '7th-traditioner'); ?>
+                        <br>
+                        <?php esc_html_e('Default: "Contribution Receipt"', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
         <div class="notice notice-info inline">
             <p>
-                <strong><?php esc_html_e('Email Configuration:', '7th-traditioner'); ?></strong>
+                <?php esc_html_e('Receipts include the contribution amount, group name (for group contributions), transaction ID, and 7th Tradition message.', '7th-traditioner'); ?>
             </p>
-            <ul>
-                <li><?php esc_html_e('Emails are sent using WordPress\'s built-in wp_mail() function', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('The "From" address is your site\'s admin email', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('To improve deliverability, consider using an SMTP plugin like WP Mail SMTP', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('Receipts include the contribution amount, group name, transaction ID, and 7th Tradition message', '7th-traditioner'); ?></li>
-            </ul>
         </div>
 
         <h3><?php esc_html_e('Test Email', '7th-traditioner'); ?></h3>
@@ -590,7 +656,15 @@ class Seventh_Trad_Settings {
         update_option('seventh_trad_enabled_currencies', $enabled_currencies);
 
         // Save show_group_id (checkbox)
-        update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? true : false);
+        update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? '1' : '0');
+
+        // Save color mode
+        if (isset($_POST['color_mode'])) {
+            $color_mode = sanitize_text_field($_POST['color_mode']);
+            if (in_array($color_mode, array('auto', 'light', 'dark'))) {
+                update_option('seventh_trad_color_mode', $color_mode);
+            }
+        }
 
         if (isset($_POST['paypal_mode'])) {
             update_option('seventh_trad_paypal_mode', sanitize_text_field($_POST['paypal_mode']));
@@ -610,6 +684,23 @@ class Seventh_Trad_Settings {
 
         if (isset($_POST['recaptcha_secret_key'])) {
             update_option('seventh_trad_recaptcha_secret_key', sanitize_text_field($_POST['recaptcha_secret_key']));
+        }
+
+        // Save email customization settings
+        if (isset($_POST['email_from_name'])) {
+            update_option('seventh_trad_email_from_name', sanitize_text_field($_POST['email_from_name']));
+        }
+
+        if (isset($_POST['email_from_address'])) {
+            update_option('seventh_trad_email_from_address', sanitize_email($_POST['email_from_address']));
+        }
+
+        if (isset($_POST['email_subject'])) {
+            update_option('seventh_trad_email_subject', sanitize_text_field($_POST['email_subject']));
+        }
+
+        if (isset($_POST['email_title'])) {
+            update_option('seventh_trad_email_title', sanitize_text_field($_POST['email_title']));
         }
 
         // Show success message
