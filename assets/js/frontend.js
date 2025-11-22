@@ -96,7 +96,7 @@
             $('#seventh-trad-currency').on('change', function() {
                 const $selected = $(this).find('option:selected');
                 const symbol = $selected.data('symbol');
-                const decimals = $selected.data('decimals');
+                const decimals = parseInt($selected.data('decimals'));
                 const position = $selected.data('position');
 
                 // Update symbol display
@@ -108,6 +108,14 @@
 
                 // Store decimals for validation
                 $('#seventh-trad-amount').data('decimals', decimals);
+
+                // Clean existing amount value if switching to no-decimal currency
+                const $amountField = $('#seventh-trad-amount');
+                const currentValue = $amountField.val();
+                if (currentValue && decimals === 0) {
+                    // Remove decimals from existing value
+                    $amountField.val(currentValue.replace(/[^0-9]/g, ''));
+                }
             }).trigger('change'); // Trigger on page load
 
             // Validate and format amount field with proper decimal places
