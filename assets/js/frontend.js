@@ -496,8 +496,8 @@
 
                     console.log('7th Traditioner: Creating order - Amount:', amount, 'Currency:', currency);
 
-                    // Create order client-side (NO SERVER SECRETS NEEDED!)
-                    return actions.order.create({
+                    // Build order object
+                    const orderData = {
                         purchase_units: [{
                             amount: {
                                 value: amount,
@@ -505,17 +505,24 @@
                             },
                             description: description
                         }],
-                        payer: {
-                            email_address: email,
-                            name: {
-                                given_name: firstName,
-                                surname: lastName
-                            }
-                        },
                         application_context: {
                             shipping_preference: 'NO_SHIPPING'
                         }
-                    });
+                    };
+
+                    // Only add payer info if we have complete name and email (avoid empty field errors)
+                    if (email && email.trim() && firstName && firstName.trim() && lastName && lastName.trim()) {
+                        orderData.payer = {
+                            email_address: email.trim(),
+                            name: {
+                                given_name: firstName.trim(),
+                                surname: lastName.trim()
+                            }
+                        };
+                    }
+
+                    // Create order client-side (NO SERVER SECRETS NEEDED!)
+                    return actions.order.create(orderData);
                 },
                 onApprove: function(data, actions) {
                     console.log('7th Traditioner: Order approved:', data.orderID);

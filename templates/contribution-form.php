@@ -81,18 +81,21 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 />
             </div>
 
-            <!-- Phone (Optional) -->
+            <!-- Phone (Required) -->
             <div class="seventh-trad-field">
                 <label for="seventh-trad-phone">
                     <?php esc_html_e('Phone', '7th-traditioner'); ?>
-                    <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
+                    <span class="required">*</span>
                 </label>
                 <input
                     type="tel"
                     id="seventh-trad-phone"
                     name="phone"
                     class="seventh-trad-input"
+                    required
+                    pattern="[\d\s\-\(\)]*"
                     placeholder="<?php esc_attr_e('(555) 123-4567', '7th-traditioner'); ?>"
+                    title="<?php esc_attr_e('Please enter a valid phone number (numbers, dashes, and parentheses only)', '7th-traditioner'); ?>"
                 />
             </div>
 
