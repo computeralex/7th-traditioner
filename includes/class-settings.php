@@ -162,9 +162,7 @@ class Seventh_Trad_Settings {
     private static function render_paypal_tab() {
         $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
         $paypal_sandbox_client_id = get_option('seventh_trad_paypal_sandbox_client_id');
-        $paypal_sandbox_secret = get_option('seventh_trad_paypal_sandbox_secret');
         $paypal_live_client_id = get_option('seventh_trad_paypal_live_client_id');
-        $paypal_live_secret = get_option('seventh_trad_paypal_live_secret');
         ?>
         <table class="form-table">
             <tr>
@@ -194,34 +192,12 @@ class Seventh_Trad_Settings {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="paypal_sandbox_secret"><?php esc_html_e('Sandbox Secret', '7th-traditioner'); ?></label>
-                </th>
-                <td>
-                    <input type="password" id="paypal_sandbox_secret" name="paypal_sandbox_secret" value="<?php echo esc_attr($paypal_sandbox_secret); ?>" class="large-text code" />
-                    <p class="description">
-                        <?php esc_html_e('Your PayPal Sandbox Secret for testing (keep this secure)', '7th-traditioner'); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
                     <label for="paypal_live_client_id"><?php esc_html_e('Live Client ID', '7th-traditioner'); ?></label>
                 </th>
                 <td>
                     <input type="text" id="paypal_live_client_id" name="paypal_live_client_id" value="<?php echo esc_attr($paypal_live_client_id); ?>" class="large-text code" />
                     <p class="description">
                         <?php esc_html_e('Your PayPal Live Client ID for production', '7th-traditioner'); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label for="paypal_live_secret"><?php esc_html_e('Live Secret', '7th-traditioner'); ?></label>
-                </th>
-                <td>
-                    <input type="password" id="paypal_live_secret" name="paypal_live_secret" value="<?php echo esc_attr($paypal_live_secret); ?>" class="large-text code" />
-                    <p class="description">
-                        <?php esc_html_e('Your PayPal Live Secret for production (keep this secure)', '7th-traditioner'); ?>
                     </p>
                 </td>
             </tr>
@@ -250,10 +226,10 @@ class Seventh_Trad_Settings {
             </ol>
         </div>
 
-        <div class="notice notice-warning inline">
+        <div class="notice notice-success inline">
             <p>
-                <strong><?php esc_html_e('Security Note:', '7th-traditioner'); ?></strong>
-                <?php esc_html_e('Your Client ID is safe to use publicly. Your Secret is stored securely in your database and never exposed to the frontend. Keep your database backups secure.', '7th-traditioner'); ?>
+                <strong><?php esc_html_e('Client-Side Only Integration:', '7th-traditioner'); ?></strong>
+                <?php esc_html_e('This plugin uses PayPal\'s client-side JavaScript SDK with ONLY your Client ID (no secret keys required). Your Client ID is safe to use publicly and all transactions are processed securely by PayPal without storing sensitive payment data.', '7th-traditioner'); ?>
             </p>
         </div>
         <?php
@@ -461,16 +437,8 @@ class Seventh_Trad_Settings {
             update_option('seventh_trad_paypal_sandbox_client_id', sanitize_text_field($_POST['paypal_sandbox_client_id']));
         }
 
-        if (isset($_POST['paypal_sandbox_secret'])) {
-            update_option('seventh_trad_paypal_sandbox_secret', sanitize_text_field($_POST['paypal_sandbox_secret']));
-        }
-
         if (isset($_POST['paypal_live_client_id'])) {
             update_option('seventh_trad_paypal_live_client_id', sanitize_text_field($_POST['paypal_live_client_id']));
-        }
-
-        if (isset($_POST['paypal_live_secret'])) {
-            update_option('seventh_trad_paypal_live_secret', sanitize_text_field($_POST['paypal_live_secret']));
         }
 
         if (isset($_POST['recaptcha_site_key'])) {
