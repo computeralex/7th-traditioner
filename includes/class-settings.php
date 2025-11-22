@@ -23,7 +23,7 @@ class Seventh_Trad_Settings {
             __('7th Traditioner', '7th-traditioner'),
             'manage_options',
             'seventh-traditioner',
-            array(__CLASS__, 'render_contributions_page'),
+            array('Seventh_Trad_Contributions', 'render_page'),
             'dashicons-heart',
             100
         );
@@ -202,6 +202,21 @@ class Seventh_Trad_Settings {
 
         <p><?php esc_html_e('You can also customize the title and description:', '7th-traditioner'); ?></p>
         <code style="display: block; padding: 15px; background: #f5f5f5; border-radius: 4px; margin: 10px 0;">[seventh_traditioner title="Support Our Fellowship" description="Contributions may be made by members of the fellowship, and are 100% voluntary"]</code>
+
+        <script>
+        jQuery(document).ready(function($) {
+            // Select/Deselect all currencies
+            $('#select-all-currencies').on('click', function(e) {
+                e.preventDefault();
+                $('.currency-checkbox').prop('checked', true);
+            });
+
+            $('#deselect-all-currencies').on('click', function(e) {
+                e.preventDefault();
+                $('.currency-checkbox').prop('checked', false);
+            });
+        });
+        </script>
         <?php
     }
 
@@ -378,17 +393,6 @@ class Seventh_Trad_Settings {
 
         <script>
         jQuery(document).ready(function($) {
-            // Select/Deselect all currencies
-            $('#select-all-currencies').on('click', function(e) {
-                e.preventDefault();
-                $('.currency-checkbox').prop('checked', true);
-            });
-
-            $('#deselect-all-currencies').on('click', function(e) {
-                e.preventDefault();
-                $('.currency-checkbox').prop('checked', false);
-            });
-
             // Test email
             $('#send-test-email').on('click', function() {
                 var email = $('#test_email').val();
