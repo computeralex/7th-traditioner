@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
  * @return array Array of currency data
  */
 function seventh_trad_get_supported_currencies() {
-    return array(
+    $currencies = array(
         'USD' => array(
             'name' => __('United States Dollar', '7th-traditioner'),
             'symbol' => '$',
@@ -185,6 +185,13 @@ function seventh_trad_get_supported_currencies() {
             'format' => 'NT$X.XX'
         ),
     );
+
+    // Sort by currency name alphabetically
+    uasort($currencies, function($a, $b) {
+        return strcmp($a['name'], $b['name']);
+    });
+
+    return $currencies;
 }
 
 /**
