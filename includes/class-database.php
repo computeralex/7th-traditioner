@@ -41,6 +41,8 @@ class Seventh_Trad_Database {
             paypal_order_id varchar(255) DEFAULT NULL,
             member_name varchar(255) DEFAULT NULL,
             member_email varchar(255) DEFAULT NULL,
+            member_phone varchar(50) DEFAULT NULL,
+            contribution_type varchar(20) DEFAULT 'individual',
             group_name varchar(255) DEFAULT NULL,
             group_id mediumint(9) DEFAULT NULL,
             amount decimal(10,2) NOT NULL,
@@ -56,6 +58,8 @@ class Seventh_Trad_Database {
             KEY transaction_id (transaction_id),
             KEY paypal_order_id (paypal_order_id),
             KEY member_email (member_email),
+            KEY member_phone (member_phone),
+            KEY contribution_type (contribution_type),
             KEY group_id (group_id),
             KEY contribution_date (contribution_date)
         ) $charset_collate;";
@@ -179,8 +183,9 @@ class Seventh_Trad_Database {
         $defaults = array(
             'limit' => 50,
             'offset' => 0,
-            'orderby' => 'contribution_date',
+            'order_by' => 'date',
             'order' => 'DESC',
+            'search' => '',
             'group_id' => null,
             'date_from' => null,
             'date_to' => null,
@@ -188,35 +193,115 @@ class Seventh_Trad_Database {
 
         $args = wp_parse_args($args, $defaults);
 
-        $where = array('1=1');
-        $values = array();
+        // Map friendly names to actual column names
+        $order_by_map = array(
+            'name' => 'member_name',
+            'email' => 'member_email',
+            'phone' => 'member_phone',
+            'amount' => 'amount',
+            'date' => 'contribution_date',
+        );
 
-        if ($args['group_id']) {
-            $where[] = 'group_id = %d';
-            $values[] = $args['group_id'];
-        }
+        $order_by = isset($order_by_map[$args['order_by']]) ? $order_by_map[$args['order_by']] : 'contribution_date';
+        $order = strtoupper($args['order']) === 'ASC' ? 'ASC' : 'DESC';
 
-        if ($args['date_from']) {
-            $where[] = 'contribution_date >= %s';
-            $values[] = $args['date_from'];
-        }
+        $where = self::build_where_clause($args);
+        $where_clause = implode(' AND ', $where['clauses']);
 
-        if ($args['date_to']) {
-            $where[] = 'contribution_date <= %s';
-            $values[] = $args['date_to'];
-        }
-
-        $where_clause = implode(' AND ', $where);
-
-        $query = "SELECT * FROM $table_name WHERE $where_clause ORDER BY {$args['orderby']} {$args['order']} LIMIT %d OFFSET %d";
-        $values[] = $args['limit'];
-        $values[] = $args['offset'];
+        $query = "SELECT * FROM $table_name WHERE $where_clause ORDER BY {$order_by} {$order} LIMIT %d OFFSET %d";
+        $values = array_merge($where['values'], array($args['limit'], $args['offset']));
 
         if (!empty($values)) {
             $query = $wpdb->prepare($query, $values);
         }
 
         return $wpdb->get_results($query);
+    }
+
+    /**
+     * Get contributions count
+     *
+     * @param array $args Query arguments
+     * @return int
+     */
+    public static function get_contributions_count($args = array()) {
+        global $wpdb;
+        $table_name = self::get_table_name();
+
+        $where = self::build_where_clause($args);
+        $where_clause = implode(' AND ', $where['clauses']);
+
+        $query = "SELECT COUNT(*) FROM $table_name WHERE $where_clause";
+
+        if (!empty($where['values'])) {
+            $query = $wpdb->prepare($query, $where['values']);
+        }
+
+        return (int) $wpdb->get_var($query);
+    }
+
+    /**
+     * Get total contribution amount
+     *
+     * @param array $args Query arguments
+     * @return float
+     */
+    public static function get_total_amount($args = array()) {
+        global $wpdb;
+        $table_name = self::get_table_name();
+
+        $where = self::build_where_clause($args);
+        $where_clause = implode(' AND ', $where['clauses']);
+
+        // For simplicity, sum all amounts (ideally would convert to single currency)
+        $query = "SELECT SUM(amount) FROM $table_name WHERE $where_clause";
+
+        if (!empty($where['values'])) {
+            $query = $wpdb->prepare($query, $where['values']);
+        }
+
+        return (float) $wpdb->get_var($query);
+    }
+
+    /**
+     * Build WHERE clause for queries
+     *
+     * @param array $args Query arguments
+     * @return array Array with 'clauses' and 'values'
+     */
+    private static function build_where_clause($args) {
+        global $wpdb;
+        $where_clauses = array('1=1');
+        $values = array();
+
+        if (!empty($args['search'])) {
+            $where_clauses[] = '(member_name LIKE %s OR member_email LIKE %s OR member_phone LIKE %s OR group_name LIKE %s)';
+            $search_term = '%' . $wpdb->esc_like($args['search']) . '%';
+            $values[] = $search_term;
+            $values[] = $search_term;
+            $values[] = $search_term;
+            $values[] = $search_term;
+        }
+
+        if (!empty($args['group_id'])) {
+            $where_clauses[] = 'group_id = %d';
+            $values[] = $args['group_id'];
+        }
+
+        if (!empty($args['date_from'])) {
+            $where_clauses[] = 'contribution_date >= %s';
+            $values[] = $args['date_from'];
+        }
+
+        if (!empty($args['date_to'])) {
+            $where_clauses[] = 'contribution_date <= %s';
+            $values[] = $args['date_to'] . ' 23:59:59';
+        }
+
+        return array(
+            'clauses' => $where_clauses,
+            'values' => $values
+        );
     }
 
     /**

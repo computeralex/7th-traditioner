@@ -17,14 +17,35 @@ class Seventh_Trad_Settings {
      * Add admin menu
      */
     public static function add_admin_menu() {
+        // Main menu item
         add_menu_page(
             __('7th Traditioner', '7th-traditioner'),
             __('7th Traditioner', '7th-traditioner'),
             'manage_options',
             'seventh-traditioner',
-            array(__CLASS__, 'render_settings_page'),
+            array(__CLASS__, 'render_contributions_page'),
             'dashicons-heart',
             100
+        );
+
+        // Contributions submenu (same as parent - will replace parent in menu)
+        add_submenu_page(
+            'seventh-traditioner',
+            __('Contributions', '7th-traditioner'),
+            __('Contributions', '7th-traditioner'),
+            'manage_options',
+            'seventh-traditioner',
+            array('Seventh_Trad_Contributions', 'render_page')
+        );
+
+        // Settings submenu
+        add_submenu_page(
+            'seventh-traditioner',
+            __('Settings', '7th-traditioner'),
+            __('Settings', '7th-traditioner'),
+            'manage_options',
+            'seventh-traditioner-settings',
+            array(__CLASS__, 'render_settings_page')
         );
     }
 
@@ -43,20 +64,20 @@ class Seventh_Trad_Settings {
             <h1><?php echo esc_html__('7th Traditioner Settings', '7th-traditioner'); ?></h1>
 
             <h2 class="nav-tab-wrapper">
-                <a href="?page=seventh-traditioner&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
+                <a href="?page=seventh-traditioner-settings&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
                     <?php esc_html_e('General', '7th-traditioner'); ?>
                 </a>
-                <a href="?page=seventh-traditioner&tab=paypal" class="nav-tab <?php echo $active_tab === 'paypal' ? 'nav-tab-active' : ''; ?>">
+                <a href="?page=seventh-traditioner-settings&tab=paypal" class="nav-tab <?php echo $active_tab === 'paypal' ? 'nav-tab-active' : ''; ?>">
                     <?php esc_html_e('PayPal', '7th-traditioner'); ?>
                 </a>
-                <a href="?page=seventh-traditioner&tab=recaptcha" class="nav-tab <?php echo $active_tab === 'recaptcha' ? 'nav-tab-active' : ''; ?>">
+                <a href="?page=seventh-traditioner-settings&tab=recaptcha" class="nav-tab <?php echo $active_tab === 'recaptcha' ? 'nav-tab-active' : ''; ?>">
                     <?php esc_html_e('reCAPTCHA', '7th-traditioner'); ?>
                 </a>
-                <a href="?page=seventh-traditioner&tab=email" class="nav-tab <?php echo $active_tab === 'email' ? 'nav-tab-active' : ''; ?>">
+                <a href="?page=seventh-traditioner-settings&tab=email" class="nav-tab <?php echo $active_tab === 'email' ? 'nav-tab-active' : ''; ?>">
                     <?php esc_html_e('Email', '7th-traditioner'); ?>
                 </a>
-                <a href="?page=seventh-traditioner&tab=contributions" class="nav-tab <?php echo $active_tab === 'contributions' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Contributions', '7th-traditioner'); ?>
+                <a href="?page=seventh-traditioner-settings&tab=data" class="nav-tab <?php echo $active_tab === 'data' ? 'nav-tab-active' : ''; ?>">
+                    <?php esc_html_e('Data', '7th-traditioner'); ?>
                 </a>
             </h2>
 
@@ -74,8 +95,8 @@ class Seventh_Trad_Settings {
                     case 'email':
                         self::render_email_tab();
                         break;
-                    case 'contributions':
-                        self::render_contributions_tab();
+                    case 'data':
+                        self::render_data_tab();
                         break;
                     default:
                         self::render_general_tab();
@@ -83,7 +104,7 @@ class Seventh_Trad_Settings {
                 }
                 ?>
 
-                <?php if ($active_tab !== 'contributions') : ?>
+                <?php if ($active_tab !== 'data') : ?>
                     <p class="submit">
                         <input type="submit" name="seventh_trad_save_settings" class="button button-primary" value="<?php esc_attr_e('Save Settings', '7th-traditioner'); ?>" />
                     </p>
@@ -397,49 +418,80 @@ class Seventh_Trad_Settings {
     }
 
     /**
-     * Render Contributions tab
+     * Render Data tab
      */
-    private static function render_contributions_tab() {
-        $contributions = Seventh_Trad_Database::get_contributions(array('limit' => 50));
-        ?>
-        <h2><?php esc_html_e('Recent Contributions', '7th-traditioner'); ?></h2>
+    private static function render_data_tab() {
+        // Handle clear history
+        if (isset($_POST['seventh_trad_clear_history'])) {
+            check_admin_referer('seventh_trad_settings', 'seventh_trad_nonce');
 
-        <?php if (empty($contributions)) : ?>
-            <p><?php esc_html_e('No contributions recorded yet.', '7th-traditioner'); ?></p>
-        <?php else : ?>
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th><?php esc_html_e('Date', '7th-traditioner'); ?></th>
-                        <th><?php esc_html_e('Member', '7th-traditioner'); ?></th>
-                        <th><?php esc_html_e('Group', '7th-traditioner'); ?></th>
-                        <th><?php esc_html_e('Amount', '7th-traditioner'); ?></th>
-                        <th><?php esc_html_e('Transaction ID', '7th-traditioner'); ?></th>
-                        <th><?php esc_html_e('Status', '7th-traditioner'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($contributions as $contribution) : ?>
-                        <tr>
-                            <td><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($contribution->contribution_date))); ?></td>
-                            <td>
-                                <?php echo esc_html($contribution->member_name ?: __('Anonymous', '7th-traditioner')); ?>
-                                <?php if ($contribution->member_email) : ?>
-                                    <br><small><?php echo esc_html($contribution->member_email); ?></small>
-                                <?php endif; ?>
-                            </td>
-                            <td><?php echo esc_html($contribution->group_name); ?></td>
-                            <td><strong><?php echo esc_html(seventh_trad_format_amount($contribution->amount, $contribution->currency)); ?></strong></td>
-                            <td><code><?php echo esc_html($contribution->transaction_id); ?></code></td>
-                            <td>
-                                <span class="dashicons dashicons-yes-alt" style="color: #46b450;"></span>
-                                <?php echo esc_html($contribution->paypal_status); ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+            if (isset($_POST['seventh_trad_clear_confirm']) && $_POST['seventh_trad_clear_confirm'] === 'DELETE') {
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'seventh_trad_contributions';
+                $deleted = $wpdb->query("TRUNCATE TABLE $table_name");
+
+                if ($deleted !== false) {
+                    echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('All contribution records have been deleted.', '7th-traditioner') . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Failed to delete contribution records.', '7th-traditioner') . '</p></div>';
+                }
+            } else {
+                echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__('Confirmation text did not match. No data was deleted.', '7th-traditioner') . '</p></div>';
+            }
+        }
+
+        $contribution_count = Seventh_Trad_Database::get_contributions_count(array());
+        ?>
+        <h2><?php esc_html_e('Contribution Records', '7th-traditioner'); ?></h2>
+
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <?php esc_html_e('Total Contributions', '7th-traditioner'); ?>
+                </th>
+                <td>
+                    <strong><?php echo esc_html(number_format_i18n($contribution_count)); ?></strong>
+                    <p class="description">
+                        <?php esc_html_e('Total number of contribution records in the database.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+        <h3 style="color: #dc3232;"><?php esc_html_e('Danger Zone', '7th-traditioner'); ?></h3>
+
+        <div style="border: 2px solid #dc3232; padding: 20px; border-radius: 4px; background: #fff;">
+            <h4><?php esc_html_e('Clear Contribution History', '7th-traditioner'); ?></h4>
+            <p style="color: #dc3232; font-weight: bold;">
+                <?php esc_html_e('WARNING: This will delete ALL contribution records! This action cannot be undone.', '7th-traditioner'); ?>
+            </p>
+            <p>
+                <?php esc_html_e('To confirm deletion, type DELETE in the box below and click the button.', '7th-traditioner'); ?>
+            </p>
+
+            <form method="post" action="" onsubmit="return confirmDelete();">
+                <?php wp_nonce_field('seventh_trad_settings', 'seventh_trad_nonce'); ?>
+
+                <p>
+                    <input type="text" id="seventh_trad_clear_confirm" name="seventh_trad_clear_confirm" value="" placeholder="<?php esc_attr_e('Type DELETE to confirm', '7th-traditioner'); ?>" style="width: 300px;" />
+                </p>
+
+                <p>
+                    <input type="submit" name="seventh_trad_clear_history" class="button button-primary" value="<?php esc_attr_e('Clear All Contribution Records', '7th-traditioner'); ?>" style="background: #dc3232; border-color: #dc3232;" />
+                </p>
+            </form>
+        </div>
+
+        <script>
+        function confirmDelete() {
+            var confirmText = document.getElementById('seventh_trad_clear_confirm').value;
+            if (confirmText !== 'DELETE') {
+                alert('<?php esc_html_e('Please type DELETE to confirm.', '7th-traditioner'); ?>');
+                return false;
+            }
+            return confirm('<?php esc_html_e('Are you absolutely sure? This will permanently delete ALL contribution records and cannot be undone!', '7th-traditioner'); ?>');
+        }
+        </script>
         <?php
     }
 

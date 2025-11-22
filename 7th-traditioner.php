@@ -63,6 +63,7 @@ class Seventh_Traditioner {
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-paypal-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-email-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-settings.php';
+        require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-contributions.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-shortcodes.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/helper-functions.php';
     }
@@ -93,6 +94,8 @@ class Seventh_Traditioner {
         add_action('wp_ajax_nopriv_seventh_trad_create_paypal_order', array($this, 'ajax_create_paypal_order'));
 
         add_action('wp_ajax_seventh_trad_send_test_email', array($this, 'ajax_send_test_email'));
+
+        add_action('wp_ajax_seventh_trad_get_contribution_details', array($this, 'ajax_get_contribution_details'));
 
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
@@ -503,6 +506,97 @@ class Seventh_Traditioner {
                 'message' => __('Failed to send test email. Please check your email server configuration.', '7th-traditioner')
             ));
         }
+    }
+
+    /**
+     * AJAX handler for getting contribution details
+     */
+    public function ajax_get_contribution_details() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_contribution_details')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        // Check user capability
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+
+        // Get contribution ID
+        $contribution_id = isset($_POST['contribution_id']) ? intval($_POST['contribution_id']) : 0;
+        if (!$contribution_id) {
+            wp_send_json_error(array('message' => 'Invalid contribution ID'));
+        }
+
+        // Get contribution
+        $contribution = Seventh_Trad_Database::get_contribution($contribution_id);
+        if (!$contribution) {
+            wp_send_json_error(array('message' => 'Contribution not found'));
+        }
+
+        // Build HTML output
+        ob_start();
+        ?>
+        <table class="widefat">
+            <tr>
+                <th><?php esc_html_e('Transaction ID:', '7th-traditioner'); ?></th>
+                <td><code><?php echo esc_html($contribution->transaction_id); ?></code></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('PayPal Order ID:', '7th-traditioner'); ?></th>
+                <td><code><?php echo esc_html($contribution->paypal_order_id); ?></code></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Name:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->member_name); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Email:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->member_email); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Phone:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->member_phone ?: '—'); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Contribution Type:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->contribution_type === 'group' ? __('Group', '7th-traditioner') : __('Individual', '7th-traditioner')); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Group:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->group_name ?: '—'); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Amount:', '7th-traditioner'); ?></th>
+                <td><strong><?php echo esc_html(seventh_trad_format_amount($contribution->amount, $contribution->currency)); ?></strong></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Currency:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->currency); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('Date:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($contribution->contribution_date))); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('PayPal Status:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->paypal_status); ?></td>
+            </tr>
+            <?php if ($contribution->custom_notes) : ?>
+            <tr>
+                <th><?php esc_html_e('Notes:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->custom_notes); ?></td>
+            </tr>
+            <?php endif; ?>
+            <tr>
+                <th><?php esc_html_e('IP Address:', '7th-traditioner'); ?></th>
+                <td><code><?php echo esc_html($contribution->ip_address); ?></code></td>
+            </tr>
+        </table>
+        <?php
+        $html = ob_get_clean();
+
+        wp_send_json_success(array('html' => $html));
     }
 }
 
