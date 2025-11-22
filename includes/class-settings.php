@@ -150,25 +150,25 @@ class Seventh_Trad_Settings {
                         <button type="button" id="select-all-currencies" class="button"><?php esc_html_e('Enable All', '7th-traditioner'); ?></button>
                         <button type="button" id="deselect-all-currencies" class="button"><?php esc_html_e('Disable All', '7th-traditioner'); ?></button>
                     </div>
-                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fff;">
+                    <div style="border: 1px solid #ddd; padding: 10px; background: #fff;">
                         <table class="widefat" style="border: none;">
                             <thead>
                                 <tr>
-                                    <th style="width: 60px;"><?php esc_html_e('Enable', '7th-traditioner'); ?></th>
-                                    <th style="width: 80px;"><?php esc_html_e('Default', '7th-traditioner'); ?></th>
-                                    <th><?php esc_html_e('Currency', '7th-traditioner'); ?></th>
+                                    <th style="width: 60px; padding: 8px;"><?php esc_html_e('Enable', '7th-traditioner'); ?></th>
+                                    <th style="width: 80px; padding: 8px;"><?php esc_html_e('Default', '7th-traditioner'); ?></th>
+                                    <th style="padding: 8px;"><?php esc_html_e('Currency', '7th-traditioner'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($currencies as $code => $currency_data) : ?>
                                     <tr>
-                                        <td style="text-align: center;">
+                                        <td style="text-align: center; padding: 4px 8px;">
                                             <input type="checkbox" name="enabled_currencies[]" value="<?php echo esc_attr($code); ?>" <?php checked(in_array($code, $enabled_currencies)); ?> class="currency-checkbox" id="currency_<?php echo esc_attr($code); ?>" />
                                         </td>
-                                        <td style="text-align: center;">
+                                        <td style="text-align: center; padding: 4px 8px;">
                                             <input type="radio" name="default_currency" value="<?php echo esc_attr($code); ?>" <?php checked($default_currency, $code); ?> class="currency-default-radio" />
                                         </td>
-                                        <td>
+                                        <td style="padding: 4px 8px;">
                                             <label for="currency_<?php echo esc_attr($code); ?>" style="margin: 0; font-weight: normal;">
                                                 <strong><?php echo esc_html($code); ?></strong> - <?php echo esc_html($currency_data['name']); ?> (<?php echo esc_html($currency_data['symbol']); ?>)
                                             </label>
