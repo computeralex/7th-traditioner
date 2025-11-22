@@ -288,7 +288,7 @@ small.seventh-trad-help {
 
 /* Help text inside PayPal button container - needs to be dark on white background */
 .seventh-trad-submit-container .seventh-trad-help {
-    color: #666666 !important;
+    color: #000000 !important;
 }
 
 .seventh-trad-submit-btn {
