@@ -93,9 +93,9 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                     name="phone"
                     class="seventh-trad-input"
                     required
-                    pattern="[\d\s\-\(\)]*"
-                    placeholder="<?php esc_attr_e('(555) 123-4567', '7th-traditioner'); ?>"
-                    title="<?php esc_attr_e('Please enter a valid phone number (numbers, dashes, and parentheses only)', '7th-traditioner'); ?>"
+                    pattern="[\d\s\-\(\)\.\+]*"
+                    placeholder="<?php esc_attr_e('+1 (555) 123-4567', '7th-traditioner'); ?>"
+                    title="<?php esc_attr_e('Please enter a valid phone number', '7th-traditioner'); ?>"
                 />
             </div>
 
