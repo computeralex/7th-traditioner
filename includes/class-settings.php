@@ -416,25 +416,43 @@ class Seventh_Trad_Settings {
         <script>
         jQuery(document).ready(function($) {
             // Test email
-            $('#send-test-email').on('click', function() {
+            $('#send-test-email').on('click', function(e) {
+                e.preventDefault();
+
                 var email = $('#test_email').val();
                 var button = $(this);
                 var result = $('#test-email-result');
 
+                if (!email) {
+                    result.html('<div class="notice notice-error inline"><p><?php esc_html_e('Please enter an email address.', '7th-traditioner'); ?></p></div>');
+                    return;
+                }
+
                 button.prop('disabled', true).text('<?php esc_html_e('Sending...', '7th-traditioner'); ?>');
                 result.html('');
+
+                console.log('Sending test email to:', email);
+                console.log('AJAX URL:', ajaxurl);
 
                 $.post(ajaxurl, {
                     action: 'seventh_trad_send_test_email',
                     email: email,
                     nonce: '<?php echo wp_create_nonce('seventh_trad_test_email'); ?>'
-                }, function(response) {
+                })
+                .done(function(response) {
+                    console.log('Response:', response);
                     if (response.success) {
                         result.html('<div class="notice notice-success inline"><p>' + response.data.message + '</p></div>');
                     } else {
-                        result.html('<div class="notice notice-error inline"><p>' + response.data.message + '</p></div>');
+                        var errorMsg = response.data && response.data.message ? response.data.message : '<?php esc_html_e('Unknown error occurred.', '7th-traditioner'); ?>';
+                        result.html('<div class="notice notice-error inline"><p>' + errorMsg + '</p></div>');
                     }
-                }).always(function() {
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX error:', textStatus, errorThrown);
+                    result.html('<div class="notice notice-error inline"><p><?php esc_html_e('Network error. Please try again.', '7th-traditioner'); ?></p></div>');
+                })
+                .always(function() {
                     button.prop('disabled', false).text('<?php esc_html_e('Send Test Email', '7th-traditioner'); ?>');
                 });
             });
