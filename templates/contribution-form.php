@@ -231,26 +231,6 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 </div>
             </div>
 
-            <!-- Recurring Contribution -->
-            <div class="seventh-trad-field">
-                <label for="seventh-trad-recurring">
-                    <?php esc_html_e('Is this a recurring contribution?', '7th-traditioner'); ?>
-                    <span class="required">*</span>
-                </label>
-                <select
-                    id="seventh-trad-recurring"
-                    name="recurring"
-                    class="seventh-trad-select"
-                    required
-                >
-                    <option value="no"><?php esc_html_e('No', '7th-traditioner'); ?></option>
-                    <option value="yes"><?php esc_html_e('Yes (PayPal Only)', '7th-traditioner'); ?></option>
-                </select>
-                <small class="seventh-trad-help">
-                    <?php esc_html_e('Recurring contributions are processed monthly via PayPal', '7th-traditioner'); ?>
-                </small>
-            </div>
-
             <!-- Notes -->
             <div class="seventh-trad-field">
                 <label for="seventh-trad-notes">
@@ -266,25 +246,25 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 ></textarea>
             </div>
 
-            <!-- PayPal Button Container -->
-            <div class="seventh-trad-submit-container">
-                <div id="seventh-trad-paypal-button-container"></div>
-                <small class="seventh-trad-help" style="text-align: center; display: block; margin-top: 10px;">
-                    <?php esc_html_e('All payments are securely processed by PayPal', '7th-traditioner'); ?>
-                </small>
-            </div>
-
-            <!-- Loading indicator -->
-            <div id="seventh-trad-loading" class="seventh-trad-loading" style="display: none;">
-                <div class="seventh-trad-spinner"></div>
-                <p><?php esc_html_e('Processing your contribution...', '7th-traditioner'); ?></p>
-            </div>
-
             <!-- Hidden fields -->
             <input type="hidden" name="action" value="seventh_trad_save_contribution" />
             <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('seventh_trad_nonce')); ?>" />
             <input type="hidden" name="recaptcha_token" id="seventh-trad-recaptcha-token" />
         </form>
+
+        <!-- PayPal Button Container (outside form to prevent conflicts) -->
+        <div class="seventh-trad-submit-container">
+            <div id="seventh-trad-paypal-button-container"></div>
+            <small class="seventh-trad-help" style="text-align: center; display: block; margin-top: 10px;">
+                <?php esc_html_e('All payments are securely processed by PayPal', '7th-traditioner'); ?>
+            </small>
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="seventh-trad-loading" class="seventh-trad-loading" style="display: none;">
+            <div class="seventh-trad-spinner"></div>
+            <p><?php esc_html_e('Processing your contribution...', '7th-traditioner'); ?></p>
+        </div>
 
         <div class="seventh-trad-footer">
             <p class="seventh-trad-secure">
