@@ -218,10 +218,14 @@ class Seventh_Traditioner {
      * Enqueue admin assets
      */
     public function enqueue_admin_assets($hook) {
-        // Only on our settings page
-        if ('toplevel_page_seventh-traditioner' !== $hook) {
+        // Only on our plugin pages
+        if ('toplevel_page_seventh-traditioner' !== $hook && '7th-traditioner_page_seventh-traditioner-settings' !== $hook) {
             return;
         }
+
+        // Enqueue jQuery UI dialog for modal popups
+        wp_enqueue_script('jquery-ui-dialog');
+        wp_enqueue_style('wp-jquery-ui-dialog');
 
         wp_enqueue_style(
             'seventh-trad-admin',
@@ -233,7 +237,7 @@ class Seventh_Traditioner {
         wp_enqueue_script(
             'seventh-trad-admin',
             SEVENTH_TRAD_PLUGIN_URL . 'assets/js/admin.js',
-            array('jquery'),
+            array('jquery', 'jquery-ui-dialog'),
             SEVENTH_TRAD_VERSION,
             true
         );
