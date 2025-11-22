@@ -433,27 +433,34 @@ class Seventh_Trad_Settings {
 
                 console.log('Sending test email to:', email);
                 console.log('AJAX URL:', ajaxurl);
+                console.log('Nonce:', '<?php echo wp_create_nonce('seventh_trad_test_email'); ?>');
 
-                $.post(ajaxurl, {
-                    action: 'seventh_trad_send_test_email',
-                    email: email,
-                    nonce: '<?php echo wp_create_nonce('seventh_trad_test_email'); ?>'
-                })
-                .done(function(response) {
-                    console.log('Response:', response);
-                    if (response.success) {
-                        result.html('<div class="notice notice-success inline"><p>' + response.data.message + '</p></div>');
-                    } else {
-                        var errorMsg = response.data && response.data.message ? response.data.message : '<?php esc_html_e('Unknown error occurred.', '7th-traditioner'); ?>';
-                        result.html('<div class="notice notice-error inline"><p>' + errorMsg + '</p></div>');
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'seventh_trad_send_test_email',
+                        email: email,
+                        nonce: '<?php echo wp_create_nonce('seventh_trad_test_email'); ?>'
+                    },
+                    success: function(response) {
+                        console.log('Success response:', response);
+                        if (response.success) {
+                            result.html('<div class="notice notice-success inline"><p>' + response.data.message + '</p></div>');
+                        } else {
+                            var errorMsg = response.data && response.data.message ? response.data.message : '<?php esc_html_e('Unknown error occurred.', '7th-traditioner'); ?>';
+                            result.html('<div class="notice notice-error inline"><p>' + errorMsg + '</p></div>');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX error:', textStatus, errorThrown);
+                        console.error('Response text:', jqXHR.responseText);
+                        console.error('Status code:', jqXHR.status);
+                        result.html('<div class="notice notice-error inline"><p><?php esc_html_e('Network error. Please check console for details.', '7th-traditioner'); ?></p></div>');
+                    },
+                    complete: function() {
+                        button.prop('disabled', false).text('<?php esc_html_e('Send Test Email', '7th-traditioner'); ?>');
                     }
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX error:', textStatus, errorThrown);
-                    result.html('<div class="notice notice-error inline"><p><?php esc_html_e('Network error. Please try again.', '7th-traditioner'); ?></p></div>');
-                })
-                .always(function() {
-                    button.prop('disabled', false).text('<?php esc_html_e('Send Test Email', '7th-traditioner'); ?>');
                 });
             });
         });
