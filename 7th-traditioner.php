@@ -405,10 +405,7 @@ class Seventh_Traditioner {
                             </p>
 
                             <p style="margin: 0 0 30px; color: #2d3748; font-size: 16px; line-height: 1.6;">
-                                ' . sprintf(
-                                    esc_html__('If you receive this email, your email configuration for %s is working correctly!', '7th-traditioner'),
-                                    '<strong>' . esc_html($fellowship_name) . '</strong>'
-                                ) . '
+                                If you receive this email, your email configuration for <strong>' . esc_html($fellowship_name) . '</strong> is working correctly!
                             </p>
 
                             <!-- Contribution Details -->
@@ -474,11 +471,7 @@ class Seventh_Traditioner {
                                 ' . esc_html($fellowship_name) . '
                             </p>
                             <p style="margin: 0; color: #a0aec0; font-size: 12px;">
-                                ' . sprintf(
-                                    esc_html__('Powered by %17th Traditioner%2', '7th-traditioner'),
-                                    '<a href="https://github.com/computeralex/7th-traditioner" style="color: #4299e1; text-decoration: none;">',
-                                    '</a>'
-                                ) . '
+                                Powered by <a href="https://github.com/computeralex/7th-traditioner" style="color: #4299e1; text-decoration: none;">7th Traditioner</a>
                             </p>
                         </td>
                     </tr>
