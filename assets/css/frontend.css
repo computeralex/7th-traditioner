@@ -280,6 +280,10 @@ small.seventh-trad-help {
 /* Submit Button - Override Elementor and other theme styles */
 .seventh-trad-submit-container {
     margin: 30px 0 !important;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .seventh-trad-submit-btn {
