@@ -447,7 +447,15 @@
                 onClick: function(data, actions) {
                     console.log('7th Traditioner: PayPal button clicked');
 
-                    // Validate form
+                    // Trigger browser's native form validation
+                    const form = self.form[0];
+                    if (!form.checkValidity()) {
+                        console.log('7th Traditioner: Browser validation failed');
+                        form.reportValidity(); // Shows browser validation messages
+                        return actions.reject();
+                    }
+
+                    // Additional custom validation
                     if (!self.validateForm()) {
                         console.log('7th Traditioner: Form validation failed');
                         return actions.reject();

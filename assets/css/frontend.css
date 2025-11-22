@@ -286,6 +286,11 @@ small.seventh-trad-help {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Help text inside PayPal button container - needs to be dark on white background */
+.seventh-trad-submit-container .seventh-trad-help {
+    color: #666666 !important;
+}
+
 .seventh-trad-submit-btn {
     width: 100% !important;
     padding: 18px 24px !important;
@@ -477,10 +482,10 @@ small.seventh-trad-help {
 
     .seventh-trad-secure,
     .seventh-trad-loading p {
-        color: #cbd5e0;
+        color: #ffffff;
     }
 
     .seventh-trad-privacy {
-        color: #a0aec0;
+        color: #ffffff;
     }
 }
