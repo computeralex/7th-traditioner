@@ -217,14 +217,15 @@
          * Validate form
          */
         validateForm: function() {
-            const name = $('#seventh-trad-name').val().trim();
+            const firstName = $('#seventh-trad-first-name').val().trim();
+            const lastName = $('#seventh-trad-last-name').val().trim();
             const email = $('#seventh-trad-email').val();
             const contributorType = $('#seventh-trad-contributor-type').val();
             const amountStr = $('#seventh-trad-amount').val().trim();
             const amount = parseFloat(amountStr);
 
-            if (!name) {
-                this.showError('Please enter your name');
+            if (!firstName || !lastName) {
+                this.showError('Please enter your first and last name');
                 return false;
             }
 
@@ -300,19 +301,22 @@
             const contributorType = $('#seventh-trad-contributor-type').val();
             const meetingDay = $('#seventh-trad-meeting-day').val();
 
+            const firstName = $('#seventh-trad-first-name').val();
+            const lastName = $('#seventh-trad-last-name').val();
+            const fullName = firstName + ' ' + lastName;
+
             const formData = {
                 action: 'seventh_trad_save_contribution',
                 nonce: seventhTradData.nonce,
                 recaptcha_token: recaptchaToken || '',
                 transaction_id: orderData.id,
                 paypal_order_id: orderData.id,
-                member_name: $('#seventh-trad-name').val(),
+                member_name: fullName,
                 member_email: $('#seventh-trad-email').val(),
                 phone: $('#seventh-trad-phone').val(),
                 contributor_type: contributorType,
                 amount: $('#seventh-trad-amount').val(),
                 currency: $('#seventh-trad-currency').val(),
-                recurring: $('#seventh-trad-recurring').val(),
                 paypal_status: orderData.status,
                 custom_notes: $('#seventh-trad-notes').val()
             };
@@ -487,14 +491,10 @@
                     const currency = $('#seventh-trad-currency').val();
                     const description = self.getOrderDescription();
                     const email = $('#seventh-trad-email').val();
-                    const name = $('#seventh-trad-name').val();
+                    const firstName = $('#seventh-trad-first-name').val();
+                    const lastName = $('#seventh-trad-last-name').val();
 
                     console.log('7th Traditioner: Creating order - Amount:', amount, 'Currency:', currency);
-
-                    // Split name into first and last (best effort)
-                    const nameParts = name.trim().split(' ');
-                    const firstName = nameParts[0] || '';
-                    const lastName = nameParts.slice(1).join(' ') || '';
 
                     // Create order client-side (NO SERVER SECRETS NEEDED!)
                     return actions.order.create({

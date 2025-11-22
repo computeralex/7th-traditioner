@@ -33,20 +33,36 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                 <div class="seventh-trad-error" style="display: none;"></div>
             </div>
 
-            <!-- Name (Always Required) -->
-            <div class="seventh-trad-field">
-                <label for="seventh-trad-name">
-                    <?php esc_html_e('Name', '7th-traditioner'); ?>
-                    <span class="required">*</span>
-                </label>
-                <input
-                    type="text"
-                    id="seventh-trad-name"
-                    name="name"
-                    class="seventh-trad-input"
-                    required
-                    placeholder="<?php esc_attr_e('First and Last Name', '7th-traditioner'); ?>"
-                />
+            <!-- Name Fields - First and Last side by side -->
+            <div class="seventh-trad-field-row">
+                <div class="seventh-trad-field seventh-trad-field-half">
+                    <label for="seventh-trad-first-name">
+                        <?php esc_html_e('First Name', '7th-traditioner'); ?>
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="seventh-trad-first-name"
+                        name="first_name"
+                        class="seventh-trad-input"
+                        required
+                        placeholder="<?php esc_attr_e('First Name', '7th-traditioner'); ?>"
+                    />
+                </div>
+                <div class="seventh-trad-field seventh-trad-field-half">
+                    <label for="seventh-trad-last-name">
+                        <?php esc_html_e('Last Name', '7th-traditioner'); ?>
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="seventh-trad-last-name"
+                        name="last_name"
+                        class="seventh-trad-input"
+                        required
+                        placeholder="<?php esc_attr_e('Last Name', '7th-traditioner'); ?>"
+                    />
+                </div>
             </div>
 
             <!-- Email (Always Required) -->
