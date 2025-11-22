@@ -137,24 +137,7 @@ class Seventh_Trad_Settings {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="default_currency"><?php esc_html_e('Default Currency', '7th-traditioner'); ?></label>
-                </th>
-                <td>
-                    <select id="default_currency" name="default_currency">
-                        <?php foreach ($currencies as $code => $currency_data) : ?>
-                            <option value="<?php echo esc_attr($code); ?>" <?php selected($default_currency, $code); ?>>
-                                <?php echo esc_html($code . ' - ' . $currency_data['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <p class="description">
-                        <?php esc_html_e('The default currency pre-selected on the contribution form', '7th-traditioner'); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
-                    <label><?php esc_html_e('Enabled Currencies', '7th-traditioner'); ?></label>
+                    <label><?php esc_html_e('Currencies', '7th-traditioner'); ?></label>
                 </th>
                 <td>
                     <?php
@@ -164,19 +147,39 @@ class Seventh_Trad_Settings {
                     }
                     ?>
                     <div style="margin-bottom: 10px;">
-                        <button type="button" id="select-all-currencies" class="button"><?php esc_html_e('Select All', '7th-traditioner'); ?></button>
-                        <button type="button" id="deselect-all-currencies" class="button"><?php esc_html_e('Deselect All', '7th-traditioner'); ?></button>
+                        <button type="button" id="select-all-currencies" class="button"><?php esc_html_e('Enable All', '7th-traditioner'); ?></button>
+                        <button type="button" id="deselect-all-currencies" class="button"><?php esc_html_e('Disable All', '7th-traditioner'); ?></button>
                     </div>
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fff;">
-                        <?php foreach ($currencies as $code => $currency_data) : ?>
-                            <label style="display: block; margin-bottom: 8px;">
-                                <input type="checkbox" name="enabled_currencies[]" value="<?php echo esc_attr($code); ?>" <?php checked(in_array($code, $enabled_currencies)); ?> class="currency-checkbox" />
-                                <strong><?php echo esc_html($code); ?></strong> - <?php echo esc_html($currency_data['name']); ?> (<?php echo esc_html($currency_data['symbol']); ?>)
-                            </label>
-                        <?php endforeach; ?>
+                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fff;">
+                        <table class="widefat" style="border: none;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;"><?php esc_html_e('Enable', '7th-traditioner'); ?></th>
+                                    <th style="width: 80px;"><?php esc_html_e('Default', '7th-traditioner'); ?></th>
+                                    <th><?php esc_html_e('Currency', '7th-traditioner'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($currencies as $code => $currency_data) : ?>
+                                    <tr>
+                                        <td style="text-align: center;">
+                                            <input type="checkbox" name="enabled_currencies[]" value="<?php echo esc_attr($code); ?>" <?php checked(in_array($code, $enabled_currencies)); ?> class="currency-checkbox" id="currency_<?php echo esc_attr($code); ?>" />
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <input type="radio" name="default_currency" value="<?php echo esc_attr($code); ?>" <?php checked($default_currency, $code); ?> class="currency-default-radio" />
+                                        </td>
+                                        <td>
+                                            <label for="currency_<?php echo esc_attr($code); ?>" style="margin: 0; font-weight: normal;">
+                                                <strong><?php echo esc_html($code); ?></strong> - <?php echo esc_html($currency_data['name']); ?> (<?php echo esc_html($currency_data['symbol']); ?>)
+                                            </label>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                     <p class="description">
-                        <?php esc_html_e('Select which currencies should be available on the contribution form. Users will only see the currencies you enable here.', '7th-traditioner'); ?>
+                        <?php esc_html_e('Enable currencies to make them available on the contribution form. Set one as default to pre-select it.', '7th-traditioner'); ?>
                     </p>
                 </td>
             </tr>
@@ -214,6 +217,25 @@ class Seventh_Trad_Settings {
             $('#deselect-all-currencies').on('click', function(e) {
                 e.preventDefault();
                 $('.currency-checkbox').prop('checked', false);
+            });
+
+            // When a currency is set as default, automatically enable it
+            $('.currency-default-radio').on('change', function() {
+                var currencyCode = $(this).val();
+                $('#currency_' + currencyCode).prop('checked', true);
+            });
+
+            // Warn if trying to disable the default currency
+            $('.currency-checkbox').on('change', function() {
+                var currencyCode = $(this).val();
+                var isChecked = $(this).is(':checked');
+                var isDefault = $('input[name="default_currency"]:checked').val() === currencyCode;
+
+                if (!isChecked && isDefault) {
+                    if (!confirm('<?php esc_html_e('This is the default currency. Are you sure you want to disable it? You should select a different default currency first.', '7th-traditioner'); ?>')) {
+                        $(this).prop('checked', true);
+                    }
+                }
             });
         });
         </script>
@@ -518,19 +540,29 @@ class Seventh_Trad_Settings {
             update_option('seventh_trad_service_body_name', sanitize_text_field($_POST['service_body_name']));
         }
 
-        if (isset($_POST['default_currency'])) {
-            update_option('seventh_trad_default_currency', sanitize_text_field($_POST['default_currency']));
-        }
-
         // Save enabled currencies (checkboxes)
+        $enabled_currencies = array();
         if (isset($_POST['enabled_currencies']) && is_array($_POST['enabled_currencies'])) {
             $enabled_currencies = array_map('sanitize_text_field', $_POST['enabled_currencies']);
-            update_option('seventh_trad_enabled_currencies', $enabled_currencies);
         } else {
             // If no currencies selected, enable all
             $currencies = seventh_trad_get_supported_currencies();
-            update_option('seventh_trad_enabled_currencies', array_keys($currencies));
+            $enabled_currencies = array_keys($currencies);
         }
+
+        // Save default currency and ensure it's enabled
+        if (isset($_POST['default_currency'])) {
+            $default_currency = sanitize_text_field($_POST['default_currency']);
+
+            // Ensure default currency is in the enabled list
+            if (!in_array($default_currency, $enabled_currencies)) {
+                $enabled_currencies[] = $default_currency;
+            }
+
+            update_option('seventh_trad_default_currency', $default_currency);
+        }
+
+        update_option('seventh_trad_enabled_currencies', $enabled_currencies);
 
         // Save show_group_id (checkbox)
         update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? true : false);
