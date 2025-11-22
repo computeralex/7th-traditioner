@@ -92,6 +92,8 @@ class Seventh_Traditioner {
         add_action('wp_ajax_seventh_trad_create_paypal_order', array($this, 'ajax_create_paypal_order'));
         add_action('wp_ajax_nopriv_seventh_trad_create_paypal_order', array($this, 'ajax_create_paypal_order'));
 
+        add_action('wp_ajax_seventh_trad_send_test_email', array($this, 'ajax_send_test_email'));
+
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
 
@@ -336,6 +338,171 @@ class Seventh_Traditioner {
             'order_id' => $result['order_id'],
             'approve_url' => $result['approve_url'],
         ));
+    }
+
+    /**
+     * AJAX handler for sending test email
+     */
+    public function ajax_send_test_email() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_test_email')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        // Check user capability
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+
+        // Get email address
+        $email = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+        if (empty($email) || !is_email($email)) {
+            wp_send_json_error(array('message' => 'Invalid email address'));
+        }
+
+        // Create a mock contribution for testing
+        $fellowship_name = seventh_trad_get_fellowship_name();
+        $subject = sprintf(
+            __('Test Receipt - %s', '7th-traditioner'),
+            $fellowship_name
+        );
+
+        // Build test email content
+        $message = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>' . esc_html__('Test Contribution Receipt', '7th-traditioner') . '</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f4f4f4;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center; background-color: #4a5568; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                ' . esc_html__('Test Contribution Receipt', '7th-traditioner') . '
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="margin: 0 0 20px; color: #2d3748; font-size: 16px; line-height: 1.6;">
+                                <strong>' . esc_html__('This is a test email.', '7th-traditioner') . '</strong>
+                            </p>
+
+                            <p style="margin: 0 0 30px; color: #2d3748; font-size: 16px; line-height: 1.6;">
+                                ' . sprintf(
+                                    esc_html__('If you receive this email, your email configuration for %s is working correctly!', '7th-traditioner'),
+                                    '<strong>' . esc_html($fellowship_name) . '</strong>'
+                                ) . '
+                            </p>
+
+                            <!-- Contribution Details -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
+                                <tr>
+                                    <td style="padding: 10px 0;">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                    ' . esc_html__('Amount:', '7th-traditioner') . '
+                                                </td>
+                                                <td style="color: #2d3748; font-size: 18px; font-weight: bold; text-align: right; padding: 8px 0;">
+                                                    $25.00
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                    ' . esc_html__('Group:', '7th-traditioner') . '
+                                                </td>
+                                                <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
+                                                    ' . esc_html__('Test Group', '7th-traditioner') . '
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                    ' . esc_html__('Date:', '7th-traditioner') . '
+                                                </td>
+                                                <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
+                                                    ' . date_i18n(get_option('date_format') . ' ' . get_option('time_format')) . '
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #718096; font-size: 14px; padding: 8px 0;">
+                                                    ' . esc_html__('Transaction ID:', '7th-traditioner') . '
+                                                </td>
+                                                <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0; font-family: monospace;">
+                                                    TEST-' . time() . '
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- 7th Tradition Note -->
+                            <div style="background-color: #edf2f7; border-left: 4px solid #4299e1; padding: 16px; margin-bottom: 30px; border-radius: 4px;">
+                                <p style="margin: 0; color: #2d3748; font-size: 14px; line-height: 1.6;">
+                                    <strong>' . esc_html__('7th Tradition:', '7th-traditioner') . '</strong>
+                                    ' . esc_html__('Every group ought to be fully self-supporting, declining outside contributions.', '7th-traditioner') . '
+                                </p>
+                            </div>
+
+                            <p style="margin: 0; color: #718096; font-size: 14px; line-height: 1.6;">
+                                ' . esc_html__('This is a test email to verify your email configuration is working correctly.', '7th-traditioner') . '
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; text-align: center;">
+                            <p style="margin: 0 0 10px; color: #718096; font-size: 14px;">
+                                ' . esc_html($fellowship_name) . '
+                            </p>
+                            <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+                                ' . sprintf(
+                                    esc_html__('Powered by %17th Traditioner%2', '7th-traditioner'),
+                                    '<a href="https://github.com/computeralex/7th-traditioner" style="color: #4299e1; text-decoration: none;">',
+                                    '</a>'
+                                ) . '
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+
+        // Email headers
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $fellowship_name . ' <' . get_option('admin_email') . '>',
+        );
+
+        // Send email
+        $sent = wp_mail($email, $subject, $message, $headers);
+
+        if ($sent) {
+            wp_send_json_success(array(
+                'message' => sprintf(
+                    __('Test email sent successfully to %s!', '7th-traditioner'),
+                    $email
+                )
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('Failed to send test email. Please check your email server configuration.', '7th-traditioner')
+            ));
+        }
     }
 }
 

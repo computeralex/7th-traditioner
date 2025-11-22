@@ -10,7 +10,10 @@ if (!defined('ABSPATH')) {
 }
 
 $groups = seventh_trad_get_groups();
-$currencies = seventh_trad_get_supported_currencies();
+$all_currencies = seventh_trad_get_supported_currencies();
+$enabled_currency_codes = get_option('seventh_trad_enabled_currencies', array_keys($all_currencies));
+// Filter to only show enabled currencies
+$currencies = array_intersect_key($all_currencies, array_flip($enabled_currency_codes));
 $default_currency = get_option('seventh_trad_default_currency', 'USD');
 $fellowship_name = seventh_trad_get_fellowship_name();
 ?>
