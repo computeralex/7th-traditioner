@@ -546,7 +546,21 @@
                 },
                 onError: function(err) {
                     console.error('7th Traditioner: PayPal error:', err);
-                    self.showError('An error occurred with PayPal. Please try again.');
+
+                    // Show detailed error for debugging
+                    let errorMessage = 'An error occurred with PayPal.';
+                    if (err && err.message) {
+                        errorMessage += ' Error: ' + err.message;
+                        console.error('7th Traditioner: Error details:', err.message);
+                    }
+
+                    // Check if it's a currency issue
+                    const currency = $('#seventh-trad-currency').val();
+                    if (currency !== 'USD') {
+                        errorMessage += ' NOTE: Sandbox test cards may only work with USD. Try USD or test in live mode with real transactions.';
+                    }
+
+                    self.showError(errorMessage);
                 }
             }).render('#seventh-trad-paypal-button-container');
         },
