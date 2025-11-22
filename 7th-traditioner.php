@@ -467,11 +467,10 @@ class Seventh_Traditioner {
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; text-align: center;">
-                            <p style="margin: 0 0 10px; color: #718096; font-size: 14px;">
-                                ' . esc_html($fellowship_name) . '
-                            </p>
-                            <p style="margin: 0; color: #a0aec0; font-size: 12px;">
-                                Powered by <a href="https://github.com/computeralex/7th-traditioner" style="color: #4299e1; text-decoration: none;">7th Traditioner</a>
+                            <p style="margin: 0; color: #718096; font-size: 14px;">
+                                <a href="' . esc_url(home_url('/')) . '" style="color: #4299e1; text-decoration: none;">
+                                    ' . esc_html($fellowship_name) . '
+                                </a>
                             </p>
                         </td>
                     </tr>
