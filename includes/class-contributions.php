@@ -95,7 +95,7 @@ class Seventh_Trad_Contributions {
 
             <!-- Contributions Table -->
             <?php if (empty($contributions)) : ?>
-                <p><?php esc_html_e('No contributions found.', '7th-traditioner'); ?></p>
+                <p style="margin-top: 20px;"><?php esc_html_e('No contributions found.', '7th-traditioner'); ?></p>
             <?php else : ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
