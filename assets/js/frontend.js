@@ -510,7 +510,7 @@
                     // Get form data
                     const amount = $('#seventh-trad-amount').val();
                     const currency = $('#seventh-trad-currency').val();
-                    const itemName = self.getItemName();
+                    const itemDetails = self.getItemDetails();
                     const email = $('#seventh-trad-email').val();
                     const firstName = $('#seventh-trad-first-name').val();
                     const lastName = $('#seventh-trad-last-name').val();
@@ -531,7 +531,8 @@
                                 }
                             },
                             items: [{
-                                name: itemName,
+                                sku: itemDetails.sku,
+                                name: itemDetails.name,
                                 unit_amount: {
                                     value: amount,
                                     currency_code: currency
@@ -600,13 +601,15 @@
         },
 
         /**
-         * Get item name for PayPal
+         * Get item details for PayPal (ID and name)
          */
-        getItemName: function() {
+        getItemDetails: function() {
             const contributorType = $('#seventh-trad-contributor-type').val();
+            let itemId = '';
             let itemName = '';
 
             if (contributorType === 'group') {
+                itemId = '7th-group';
                 const meetingDay = $('#seventh-trad-meeting-day option:selected').text();
                 const isManualEntry = $('#other-meeting-field').is(':visible');
 
@@ -616,17 +619,21 @@
                 if (isManualEntry) {
                     const meetingName = $('#seventh-trad-other-meeting').val();
                     const meetingTime = $('#seventh-trad-meeting-time').val() || '';
-                    itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingTime + ' ' + meetingName;
+                    itemName = dayAbbrev + ' ' + meetingTime + ' ' + meetingName;
                 } else {
                     // Meeting dropdown already has format "TIME - MEETING NAME"
                     const meetingLabel = $('#seventh-trad-meeting option:selected').text();
-                    itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingLabel;
+                    itemName = dayAbbrev + ' ' + meetingLabel;
                 }
             } else {
-                itemName = '7th Trad Individual';
+                itemId = '7th-member';
+                itemName = 'Individual Contribution';
             }
 
-            return itemName.substring(0, 127); // PayPal limit
+            return {
+                sku: itemId,
+                name: itemName.substring(0, 127) // PayPal limit
+            };
         }
     };
 
