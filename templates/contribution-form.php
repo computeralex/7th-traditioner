@@ -254,24 +254,6 @@ $color_mode = get_option('seventh_trad_color_mode', 'auto');
                     </div>
                 </div>
             </div>
-
-            <!-- Notes -->
-            <div class="seventh-trad-field">
-                <label for="seventh-trad-notes">
-                    <?php esc_html_e('Notes', '7th-traditioner'); ?>
-                    <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
-                </label>
-                <textarea
-                    id="seventh-trad-notes"
-                    name="notes"
-                    class="seventh-trad-textarea"
-                    rows="3"
-                    maxlength="127"
-                    placeholder="<?php esc_attr_e('In memory of, gratitude, etc.', '7th-traditioner'); ?>"
-                ></textarea>
-                <small class="seventh-trad-help"><?php esc_html_e('Maximum 127 characters', '7th-traditioner'); ?></small>
-            </div>
-
             <!-- Hidden fields -->
             <input type="hidden" name="action" value="seventh_trad_save_contribution" />
             <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('seventh_trad_nonce')); ?>" />

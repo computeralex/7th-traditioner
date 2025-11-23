@@ -510,7 +510,7 @@
                     // Get form data
                     const amount = $('#seventh-trad-amount').val();
                     const currency = $('#seventh-trad-currency').val();
-                    const itemDetails = self.getItemDetails();
+                    const itemName = self.getItemName();
                     const email = $('#seventh-trad-email').val();
                     const firstName = $('#seventh-trad-first-name').val();
                     const lastName = $('#seventh-trad-last-name').val();
@@ -531,8 +531,7 @@
                                 }
                             },
                             items: [{
-                                name: itemDetails.name,
-                                description: itemDetails.description,
+                                name: itemName,
                                 unit_amount: {
                                     value: amount,
                                     currency_code: currency
@@ -601,13 +600,11 @@
         },
 
         /**
-         * Get item details for PayPal (name and description)
+         * Get item name for PayPal
          */
-        getItemDetails: function() {
+        getItemName: function() {
             const contributorType = $('#seventh-trad-contributor-type').val();
-            const notes = $('#seventh-trad-notes').val().trim();
             let itemName = '';
-            let itemDescription = '';
 
             if (contributorType === 'group') {
                 const meetingDay = $('#seventh-trad-meeting-day option:selected').text();
@@ -629,16 +626,7 @@
                 itemName = '7th Trad Individual';
             }
 
-            // Description is just the notes field (already limited to 127 chars in HTML)
-            // But safety check in case someone bypasses client-side validation
-            if (notes) {
-                itemDescription = notes.substring(0, 127);
-            }
-
-            return {
-                name: itemName.substring(0, 127), // Safety check for name too
-                description: itemDescription
-            };
+            return itemName.substring(0, 127); // PayPal limit
         }
     };
 
