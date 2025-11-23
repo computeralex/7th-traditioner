@@ -533,6 +533,7 @@
                             items: [{
                                 sku: itemDetails.sku,
                                 name: itemDetails.name,
+                                description: itemDetails.description,
                                 unit_amount: {
                                     value: amount,
                                     currency_code: currency
@@ -601,7 +602,7 @@
         },
 
         /**
-         * Get item details for PayPal (ID and name)
+         * Get item details for PayPal (ID, name, and description/memo)
          */
         getItemDetails: function() {
             const contributorType = $('#seventh-trad-contributor-type').val();
@@ -630,10 +631,44 @@
                 itemName = 'Individual Contribution';
             }
 
+            // Build description/memo field
+            const description = this.buildMemo();
+
             return {
                 sku: itemId,
-                name: itemName.substring(0, 127) // PayPal limit
+                name: itemName.substring(0, 127), // PayPal limit
+                description: description.substring(0, 127) // PayPal limit
             };
+        },
+
+        /**
+         * Build memo field with notes, phone, and group number
+         */
+        buildMemo: function() {
+            const parts = [];
+
+            // Add notes if provided
+            const notes = $('#seventh-trad-notes').val();
+            if (notes && notes.trim()) {
+                parts.push(notes.trim());
+            }
+
+            // Add phone number
+            const phone = $('#seventh-trad-phone').val();
+            if (phone && phone.trim()) {
+                parts.push('phone: ' + phone.trim());
+            }
+
+            // Add group number if this is a group contribution
+            const contributorType = $('#seventh-trad-contributor-type').val();
+            if (contributorType === 'group') {
+                const groupId = $('#seventh-trad-group-id').val();
+                if (groupId && groupId.trim()) {
+                    parts.push(groupId.trim());
+                }
+            }
+
+            return parts.join(' | ');
         }
     };
 

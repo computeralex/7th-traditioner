@@ -205,6 +205,23 @@ $color_mode = get_option('seventh_trad_color_mode', 'auto');
                 <?php endif; ?>
             </div>
 
+            <!-- Notes Field -->
+            <div class="seventh-trad-field">
+                <label for="seventh-trad-notes">
+                    <?php esc_html_e('Notes', '7th-traditioner'); ?>
+                    <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
+                </label>
+                <textarea
+                    id="seventh-trad-notes"
+                    name="notes"
+                    class="seventh-trad-textarea"
+                    rows="3"
+                    maxlength="127"
+                    placeholder="<?php esc_attr_e('In memory of, gratitude, etc.', '7th-traditioner'); ?>"
+                ></textarea>
+                <small class="seventh-trad-help"><?php esc_html_e('Maximum 127 characters', '7th-traditioner'); ?></small>
+            </div>
+
             <!-- Currency and Amount Row -->
             <div class="seventh-trad-field-row">
                 <div class="seventh-trad-field seventh-trad-field-60">
