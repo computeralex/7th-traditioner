@@ -621,10 +621,9 @@
                     const meetingTime = $('#seventh-trad-meeting-time').val() || '';
                     itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingTime + ' ' + meetingName;
                 } else {
-                    const $selectedMeeting = $('#seventh-trad-meeting option:selected');
-                    const meetingName = $selectedMeeting.text();
-                    const meetingTime = $selectedMeeting.data('time') || '';
-                    itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingTime + ' ' + meetingName;
+                    // Meeting dropdown already has format "TIME - MEETING NAME"
+                    const meetingLabel = $('#seventh-trad-meeting option:selected').text();
+                    itemName = '7th Trad Group ' + dayAbbrev + ' ' + meetingLabel;
                 }
             } else {
                 itemName = '7th Trad Individual';
