@@ -376,6 +376,26 @@ function seventh_trad_get_fellowship_name() {
 }
 
 /**
+ * Get day name from day number
+ *
+ * @param int $day_number Day number (0-6, where 0 is Sunday)
+ * @return string Day name
+ */
+function seventh_trad_get_day_name($day_number) {
+    $days = array(
+        '0' => __('Sunday', '7th-traditioner'),
+        '1' => __('Monday', '7th-traditioner'),
+        '2' => __('Tuesday', '7th-traditioner'),
+        '3' => __('Wednesday', '7th-traditioner'),
+        '4' => __('Thursday', '7th-traditioner'),
+        '5' => __('Friday', '7th-traditioner'),
+        '6' => __('Saturday', '7th-traditioner'),
+    );
+
+    return isset($days[$day_number]) ? $days[$day_number] : '';
+}
+
+/**
  * Sanitize contribution data
  *
  * @param array $data Raw data
@@ -387,7 +407,10 @@ function seventh_trad_sanitize_contribution_data($data) {
         'paypal_order_id' => sanitize_text_field($data['paypal_order_id'] ?? ''),
         'member_name' => sanitize_text_field($data['member_name'] ?? ''),
         'member_email' => sanitize_email($data['member_email'] ?? ''),
-        'group_name' => sanitize_text_field($data['group_name'] ?? ''),
+        'member_phone' => sanitize_text_field($data['phone'] ?? ''),
+        'contribution_type' => sanitize_text_field($data['contributor_type'] ?? 'individual'),
+        'meeting_day' => sanitize_text_field($data['meeting_day'] ?? ''),
+        'group_name' => sanitize_text_field($data['meeting_name'] ?? $data['group_name'] ?? ''),
         'group_id' => absint($data['group_id'] ?? 0),
         'amount' => floatval($data['amount'] ?? 0),
         'currency' => sanitize_text_field($data['currency'] ?? 'USD'),

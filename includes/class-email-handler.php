@@ -136,25 +136,37 @@ class Seventh_Trad_Email_Handler {
                                                             <?php echo esc_html($formatted_amount); ?>
                                                         </td>
                                                     </tr>
-                                                    <?php if ($contribution->contribution_type === 'group' && !empty($contribution->group_name)) : ?>
-                                                    <tr>
-                                                        <td style="color: #000000; font-size: 14px; padding: 8px 0;">
-                                                            <?php echo esc_html__('Group:', '7th-traditioner'); ?>
-                                                        </td>
-                                                        <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
-                                                            <?php echo esc_html($contribution->group_name); ?>
-                                                        </td>
-                                                    </tr>
-                                                    <?php endif; ?>
-                                                    <?php if ($contribution->contribution_type === 'group' && !empty($contribution->group_id)) : ?>
-                                                    <tr>
-                                                        <td style="color: #000000; font-size: 14px; padding: 8px 0;">
-                                                            <?php echo esc_html__('Group ID:', '7th-traditioner'); ?>
-                                                        </td>
-                                                        <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
-                                                            <?php echo esc_html($contribution->group_id); ?>
-                                                        </td>
-                                                    </tr>
+                                                    <?php if ($contribution->contribution_type === 'group') : ?>
+                                                        <?php if (!empty($contribution->meeting_day)) : ?>
+                                                        <tr>
+                                                            <td style="color: #000000; font-size: 14px; padding: 8px 0;">
+                                                                <?php echo esc_html__('Meeting Day:', '7th-traditioner'); ?>
+                                                            </td>
+                                                            <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
+                                                                <?php echo esc_html(seventh_trad_get_day_name($contribution->meeting_day)); ?>
+                                                            </td>
+                                                        </tr>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($contribution->group_name)) : ?>
+                                                        <tr>
+                                                            <td style="color: #000000; font-size: 14px; padding: 8px 0;">
+                                                                <?php echo esc_html__('Meeting Time & Name:', '7th-traditioner'); ?>
+                                                            </td>
+                                                            <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
+                                                                <?php echo esc_html($contribution->group_name); ?>
+                                                            </td>
+                                                        </tr>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($contribution->group_id)) : ?>
+                                                        <tr>
+                                                            <td style="color: #000000; font-size: 14px; padding: 8px 0;">
+                                                                <?php echo esc_html__('Group ID:', '7th-traditioner'); ?>
+                                                            </td>
+                                                            <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
+                                                                <?php echo esc_html($contribution->group_id); ?>
+                                                            </td>
+                                                        </tr>
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
                                                     <tr>
                                                         <td style="color: #000000; font-size: 14px; padding: 8px 0;">

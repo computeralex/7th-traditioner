@@ -43,6 +43,7 @@ class Seventh_Trad_Database {
             member_email varchar(255) DEFAULT NULL,
             member_phone varchar(50) DEFAULT NULL,
             contribution_type varchar(20) DEFAULT 'individual',
+            meeting_day varchar(20) DEFAULT NULL,
             group_name varchar(255) DEFAULT NULL,
             group_id mediumint(9) DEFAULT NULL,
             amount decimal(10,2) NOT NULL,
@@ -68,7 +69,7 @@ class Seventh_Trad_Database {
         dbDelta($sql);
 
         // Store the database version
-        add_option('seventh_trad_db_version', '1.0');
+        add_option('seventh_trad_db_version', '1.1');
     }
 
     /**
@@ -85,6 +86,7 @@ class Seventh_Trad_Database {
             'paypal_order_id' => '',
             'member_name' => '',
             'member_email' => '',
+            'meeting_day' => '',
             'group_name' => '',
             'group_id' => null,
             'amount' => 0,

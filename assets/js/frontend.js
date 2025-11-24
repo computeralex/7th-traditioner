@@ -613,7 +613,7 @@
             let itemName = '';
 
             if (contributorType === 'group') {
-                itemId = '7th-group';
+                itemId = '7TH-GROUP';
                 const meetingDay = $('#seventh-trad-meeting-day option:selected').text();
                 const isManualEntry = $('#other-meeting-field').is(':visible');
 
@@ -630,7 +630,7 @@
                     itemName = dayAbbrev + ' ' + meetingLabel;
                 }
             } else {
-                itemId = '7th-member';
+                itemId = '7TH-MEMBER';
                 itemName = 'Individual Contribution';
             }
 
