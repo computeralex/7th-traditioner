@@ -69,7 +69,31 @@ class Seventh_Trad_Database {
         dbDelta($sql);
 
         // Store the database version
-        add_option('seventh_trad_db_version', '1.1');
+        update_option('seventh_trad_db_version', '1.1');
+
+        // Run migrations for existing tables
+        self::run_migrations();
+    }
+
+    /**
+     * Run database migrations for existing installations
+     */
+    public static function run_migrations() {
+        global $wpdb;
+        $table_name = self::get_table_name();
+        $current_version = get_option('seventh_trad_db_version', '1.0');
+
+        // Migration to version 1.1 - Add missing columns
+        if (version_compare($current_version, '1.1', '<')) {
+            // Check and add meeting_day column
+            $column_exists = $wpdb->get_results("SHOW COLUMNS FROM `{$table_name}` LIKE 'meeting_day'");
+            if (empty($column_exists)) {
+                $wpdb->query("ALTER TABLE `{$table_name}` ADD `meeting_day` varchar(20) DEFAULT NULL AFTER `contribution_type`");
+            }
+
+            // Update version
+            update_option('seventh_trad_db_version', '1.1');
+        }
     }
 
     /**
@@ -106,6 +130,9 @@ class Seventh_Trad_Database {
                 'paypal_order_id' => sanitize_text_field($data['paypal_order_id']),
                 'member_name' => sanitize_text_field($data['member_name']),
                 'member_email' => sanitize_email($data['member_email']),
+                'member_phone' => sanitize_text_field($data['member_phone']),
+                'contribution_type' => sanitize_text_field($data['contribution_type']),
+                'meeting_day' => sanitize_text_field($data['meeting_day']),
                 'group_name' => sanitize_text_field($data['group_name']),
                 'group_id' => absint($data['group_id']),
                 'amount' => floatval($data['amount']),
@@ -120,6 +147,9 @@ class Seventh_Trad_Database {
                 '%s', // paypal_order_id
                 '%s', // member_name
                 '%s', // member_email
+                '%s', // member_phone
+                '%s', // contribution_type
+                '%s', // meeting_day
                 '%s', // group_name
                 '%d', // group_id
                 '%f', // amount
