@@ -66,6 +66,9 @@ class Seventh_Trad_Contribution_Handler {
         // Sanitize data
         $data = seventh_trad_sanitize_contribution_data($_POST);
 
+        // Debug log
+        error_log('7th Traditioner: Sanitized data - ' . json_encode($data));
+
         // Validate name
         if (empty($data['member_name']) || strlen(trim($data['member_name'])) < 2) {
             wp_send_json_error(array(
@@ -95,8 +98,8 @@ class Seventh_Trad_Contribution_Handler {
             ));
         }
 
-        // Get group name from ID
-        if (function_exists('tsml_get_groups')) {
+        // Get group name from ID only if not already set (from manual entry or dropdown)
+        if (empty($data['group_name']) && function_exists('tsml_get_groups')) {
             $groups = tsml_get_groups();
             if (isset($groups[$data['group_id']])) {
                 $data['group_name'] = $groups[$data['group_id']]['group'];
