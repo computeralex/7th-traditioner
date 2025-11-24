@@ -375,6 +375,9 @@
          * Show success message - replaces entire form
          */
         showSuccess: function(message) {
+            // Hide the PayPal button container
+            $('#seventh-trad-paypal-button-container').parent('.seventh-trad-submit-container').fadeOut(400);
+
             // Fade out the form
             $('.seventh-trad-form').fadeOut(400, function() {
                 // Replace with success message
