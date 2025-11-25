@@ -34,6 +34,9 @@
                 history.replaceState(null, null, ' ');
             }
 
+            // Restore form data from sessionStorage after currency change reload
+            this.restoreFormData();
+
             this.initReCaptcha();
             this.bindEvents();
 
@@ -136,6 +139,8 @@
                 // Reload page with new currency if PayPal SDK already loaded
                 if (self.paypalSDKLoaded && self.currentCurrency !== currency) {
                     console.log('7th Traditioner: Currency changed to', currency, '- reloading page');
+                    // Save form data before reload
+                    self.saveFormData();
                     // Store the new currency in URL hash so it persists on reload
                     window.location.hash = 'currency=' + currency;
                     window.location.reload();
@@ -508,6 +513,59 @@
          */
         resetForm: function() {
             this.form[0].reset();
+        },
+
+        /**
+         * Save form data to sessionStorage before currency reload
+         */
+        saveFormData: function() {
+            const formData = {
+                firstName: $('#seventh-trad-first-name').val(),
+                lastName: $('#seventh-trad-last-name').val(),
+                email: $('#seventh-trad-email').val(),
+                phone: $('#seventh-trad-phone').val(),
+                contributorType: $('#seventh-trad-contributor-type').val(),
+                meetingDay: $('#seventh-trad-meeting-day').val(),
+                meeting: $('#seventh-trad-meeting').val(),
+                otherMeeting: $('#seventh-trad-other-meeting').val(),
+                amount: $('#seventh-trad-amount').val(),
+                customNotes: $('#seventh-trad-custom-notes').val()
+            };
+            sessionStorage.setItem('seventh_trad_form_data', JSON.stringify(formData));
+            console.log('7th Traditioner: Form data saved to sessionStorage');
+        },
+
+        /**
+         * Restore form data from sessionStorage after currency reload
+         */
+        restoreFormData: function() {
+            const savedData = sessionStorage.getItem('seventh_trad_form_data');
+            if (!savedData) {
+                return;
+            }
+
+            console.log('7th Traditioner: Restoring form data from sessionStorage');
+
+            try {
+                const formData = JSON.parse(savedData);
+
+                $('#seventh-trad-first-name').val(formData.firstName || '');
+                $('#seventh-trad-last-name').val(formData.lastName || '');
+                $('#seventh-trad-email').val(formData.email || '');
+                $('#seventh-trad-phone').val(formData.phone || '');
+                $('#seventh-trad-contributor-type').val(formData.contributorType || '').trigger('change');
+                $('#seventh-trad-meeting-day').val(formData.meetingDay || '').trigger('change');
+                $('#seventh-trad-meeting').val(formData.meeting || '');
+                $('#seventh-trad-other-meeting').val(formData.otherMeeting || '');
+                $('#seventh-trad-amount').val(formData.amount || '');
+                $('#seventh-trad-custom-notes').val(formData.customNotes || '');
+
+                // Clear the stored data
+                sessionStorage.removeItem('seventh_trad_form_data');
+            } catch (e) {
+                console.error('7th Traditioner: Error restoring form data:', e);
+                sessionStorage.removeItem('seventh_trad_form_data');
+            }
         },
 
         /**
