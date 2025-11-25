@@ -219,7 +219,7 @@ class Seventh_Trad_Settings {
                 </th>
                 <td>
                     <?php $min_amount = get_option('seventh_trad_min_contribution_amount', ''); ?>
-                    <input type="number" id="min_contribution_amount" name="min_contribution_amount" value="<?php echo esc_attr($min_amount); ?>" class="small-text" min="0" step="0.01" placeholder="<?php esc_attr_e('No minimum', '7th-traditioner'); ?>" />
+                    <input type="number" id="min_contribution_amount" name="min_contribution_amount" value="<?php echo esc_attr($min_amount); ?>" class="regular-text" min="0" step="0.01" placeholder="<?php esc_attr_e('No minimum', '7th-traditioner'); ?>" />
                     <p class="description">
                         <?php esc_html_e('Leave blank for no minimum. Automatically converted to other currencies using current exchange rates.', '7th-traditioner'); ?><br>
                         <?php esc_html_e('Recommended: $1-2 USD to prevent card testing fraud.', '7th-traditioner'); ?>
