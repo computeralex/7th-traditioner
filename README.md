@@ -284,6 +284,7 @@ apply_filters('seventh_trad_currencies', $currencies);
 
 Future enhancements being considered:
 
+- [ ] **Recurring contributions** - Monthly/weekly subscriptions (requires PayPal subscription API, would disable card payments to use PayPal's native recurring features)
 - [ ] Contribution reports and analytics
 - [ ] CSV export
 - [ ] Stripe integration option
