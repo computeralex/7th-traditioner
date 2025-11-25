@@ -598,17 +598,15 @@
                     }
 
 
-                    // Get reCAPTCHA token to prevent card testing attacks
+                    // Get reCAPTCHA token ONCE before payment (cache for later use after payment)
                     return self.getReCaptchaToken().then(function(token) {
-                        if (token) {
-                            self.recaptchaToken = token;
-                            return actions.resolve();
-                        } else {
-                            return actions.resolve();
-                        }
+                        self.cachedRecaptchaToken = token || '';
+                        return actions.resolve();
                     }).catch(function(err) {
-                        self.showError('Security verification failed. Please try again.');
-                        return actions.reject();
+                        console.error('reCAPTCHA error:', err);
+                        // Allow payment to proceed even if reCAPTCHA fails (token will be empty)
+                        self.cachedRecaptchaToken = '';
+                        return actions.resolve();
                     });
                 },
                 createOrder: function(data, actions) {
@@ -702,10 +700,8 @@
                     // Capture the order
                     return actions.order.capture().then(function(details) {
 
-                        // Save contribution to database
-                        self.getReCaptchaToken().then(function(recaptchaToken) {
-                            self.saveContribution(details, recaptchaToken);
-                        });
+                        // Save contribution to database using cached reCAPTCHA token from onClick
+                        self.saveContribution(details, self.cachedRecaptchaToken);
                     });
                 },
                 onCancel: function(data) {
