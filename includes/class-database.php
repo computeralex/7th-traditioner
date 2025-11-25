@@ -88,7 +88,11 @@ class Seventh_Trad_Database {
             // Check and add meeting_day column
             $column_exists = $wpdb->get_results("SHOW COLUMNS FROM `{$table_name}` LIKE 'meeting_day'");
             if (empty($column_exists)) {
-                $wpdb->query("ALTER TABLE `{$table_name}` ADD `meeting_day` varchar(20) DEFAULT NULL AFTER `contribution_type`");
+                $result = $wpdb->query("ALTER TABLE `{$table_name}` ADD `meeting_day` varchar(20) DEFAULT NULL AFTER `contribution_type`");
+                if ($result === false) {
+                    error_log('7th Traditioner: Migration 1.1 failed - ' . $wpdb->last_error);
+                    return; // Don't update version if migration failed
+                }
             }
 
             // Update version

@@ -23,6 +23,7 @@
                 return;
             }
 
+            console.log('7th Traditioner: Initializing plugin');
 
             this.initReCaptcha();
             this.bindEvents();
@@ -175,12 +176,14 @@
             const siteKey = seventhTradData.recaptcha_site_key;
 
             if (!siteKey) {
+                console.log('7th Traditioner: reCAPTCHA not configured');
                 return;
             }
 
             // grecaptcha is loaded via the Google reCAPTCHA script
             if (typeof grecaptcha !== 'undefined') {
                 grecaptcha.ready(function() {
+                    console.log('7th Traditioner: reCAPTCHA ready');
                 });
             }
         },
@@ -264,6 +267,7 @@
             const maxAmount = parseFloat($amountField.data('max-amount'));
             const currency = this.selectedCurrency;
 
+            console.log('7th Traditioner: Min/Max validation - Amount:', amount, 'Min:', minAmount, 'Max:', maxAmount);
 
             if (minAmount && !isNaN(minAmount) && amount < minAmount) {
                 const symbol = $('#seventh-trad-currency-symbol').text();
@@ -308,6 +312,9 @@
             const contributorType = $('#seventh-trad-contributor-type').val();
             const meetingDay = $('#seventh-trad-meeting-day').val();
 
+            console.log('7th Traditioner: saveContribution - contributorType:', contributorType);
+            console.log('7th Traditioner: saveContribution - meetingDay value:', meetingDay);
+            console.log('7th Traditioner: saveContribution - meetingDay element found:', $('#seventh-trad-meeting-day').length);
 
             const firstName = $('#seventh-trad-first-name').val();
             const lastName = $('#seventh-trad-last-name').val();
@@ -348,6 +355,7 @@
                 formData.group_id = $('#seventh-trad-group-id').val();
             }
 
+            console.log('7th Traditioner: Sending contribution data:', formData);
 
             $.ajax({
                 url: seventhTradData.ajax_url,
@@ -364,6 +372,7 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.error('7th Traditioner: AJAX error', error);
                     self.hideLoading();
                     self.showError(seventhTradData.strings.error);
                 }
@@ -413,14 +422,21 @@
             const $error = $('.seventh-trad-error');
             const $success = $('.seventh-trad-success');
 
+            console.log('7th Traditioner: showError called with message:', message);
+            console.log('7th Traditioner: Error div found:', $error.length);
+            console.log('7th Traditioner: Error div HTML before:', $error.html());
 
             $success.hide();
             $error.html(message).css('display', 'block').show();
 
+            console.log('7th Traditioner: Error div display:', $error.css('display'));
+            console.log('7th Traditioner: Error div visible:', $error.is(':visible'));
+            console.log('7th Traditioner: Error div HTML after:', $error.html());
 
             // Scroll to message
             setTimeout(() => {
                 const errorOffset = $error.offset();
+                console.log('7th Traditioner: Error offset:', errorOffset);
                 if (errorOffset && errorOffset.top > 0) {
                     $('html, body').animate({
                         scrollTop: errorOffset.top - 100
@@ -463,6 +479,7 @@
             const autoCurrency = $('.seventh-trad-container').data('auto-currency');
 
             if (isSingleCurrency && autoCurrency) {
+                console.log('7th Traditioner: Single currency mode - auto-selecting', autoCurrency);
                 self.selectCurrency(autoCurrency);
                 return;
             }
@@ -488,6 +505,7 @@
         selectCurrency: function(currency) {
             const self = this;
 
+            console.log('7th Traditioner: Currency selected:', currency);
 
             // Store selected currency
             self.selectedCurrency = currency;
@@ -525,12 +543,15 @@
             const self = this;
 
             if (self.paypalSDKLoaded) {
+                console.log('7th Traditioner: PayPal SDK already loaded');
                 return;
             }
 
+            console.log('7th Traditioner: Loading PayPal SDK for currency:', currency);
 
             const clientId = seventhTradData.paypal_client_id;
             if (!clientId) {
+                console.error('7th Traditioner: No PayPal Client ID configured');
                 $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">PayPal is not configured. Please contact the administrator.</div>');
                 return;
             }
@@ -543,10 +564,12 @@
             script.src = sdkUrl;
             script.async = true;
             script.onload = function() {
+                console.log('7th Traditioner: PayPal SDK loaded successfully for', currency);
                 self.paypalSDKLoaded = true;
                 self.initSubmitButton();
             };
             script.onerror = function() {
+                console.error('7th Traditioner: Failed to load PayPal SDK');
                 $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">Failed to load PayPal. Please refresh the page.</div>');
             };
 
@@ -561,9 +584,11 @@
 
             // Check if PayPal SDK is available
             if (typeof paypal === 'undefined') {
+                console.warn('7th Traditioner: PayPal SDK not loaded');
                 return;
             }
 
+            console.log('7th Traditioner: Rendering PayPal buttons');
 
             // Render PayPal buttons
             paypal.Buttons({
@@ -577,10 +602,12 @@
 
                 // Validate form before creating order
                 onClick: function(data, actions) {
+                    console.log('7th Traditioner: PayPal button clicked');
 
                     // Trigger browser's native form validation
                     const form = self.form[0];
                     if (!form.checkValidity()) {
+                        console.log('7th Traditioner: Browser validation failed');
                         form.reportValidity(); // Shows browser validation messages
 
                         // Also show custom error since reportValidity doesn't always work in iframe context
@@ -595,24 +622,30 @@
 
                     // Additional custom validation
                     if (!self.validateForm()) {
+                        console.log('7th Traditioner: Form validation failed');
                         return actions.reject();
                     }
 
+                    console.log('7th Traditioner: Form validation passed');
 
                     // Get reCAPTCHA token to prevent card testing attacks
                     return self.getReCaptchaToken().then(function(token) {
                         if (token) {
+                            console.log('7th Traditioner: reCAPTCHA token obtained');
                             self.recaptchaToken = token;
                             return actions.resolve();
                         } else {
+                            console.warn('7th Traditioner: reCAPTCHA not configured, proceeding anyway');
                             return actions.resolve();
                         }
                     }).catch(function(err) {
+                        console.error('7th Traditioner: reCAPTCHA error:', err);
                         self.showError('Security verification failed. Please try again.');
                         return actions.reject();
                     });
                 },
                 createOrder: function(data, actions) {
+                    console.log('7th Traditioner: createOrder called');
 
                     // Get form data
                     const amount = $('#seventh-trad-amount').val();
@@ -622,6 +655,7 @@
                     const firstName = $('#seventh-trad-first-name').val();
                     const lastName = $('#seventh-trad-last-name').val();
 
+                    console.log('7th Traditioner: Creating order - Amount:', amount, 'Currency:', currency);
 
                     // Build order object with item breakdown
                     const orderData = {
@@ -667,12 +701,14 @@
                     return actions.order.create(orderData);
                 },
                 onApprove: function(data, actions) {
+                    console.log('7th Traditioner: Order approved:', data.orderID);
 
                     // Show loading
                     self.showLoading();
 
                     // Capture the order
                     return actions.order.capture().then(function(details) {
+                        console.log('7th Traditioner: Payment captured:', details);
 
                         // Save contribution to database
                         self.getReCaptchaToken().then(function(recaptchaToken) {
@@ -681,14 +717,17 @@
                     });
                 },
                 onCancel: function(data) {
+                    console.log('7th Traditioner: Payment cancelled');
                     self.showError('Payment was cancelled. Please try again if you wish to contribute.');
                 },
                 onError: function(err) {
+                    console.error('7th Traditioner: PayPal error:', err);
 
                     // Show detailed error for debugging
                     let errorMessage = 'An error occurred with PayPal.';
                     if (err && err.message) {
                         errorMessage += ' Error: ' + err.message;
+                        console.error('7th Traditioner: Error details:', err.message);
                     }
 
                     // Check if it's a currency issue
@@ -820,6 +859,7 @@
                     }
                 },
                 error: function() {
+                    console.warn('7th Traditioner: Failed to fetch exchange rate for ' + currency);
                     // Gracefully degrade - don't enforce min/max if we can't convert
                 }
             });
