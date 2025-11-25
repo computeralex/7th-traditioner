@@ -10,8 +10,6 @@
     const SeventhTrad = {
         form: null,
         recaptchaToken: null,
-        paypalSDKLoaded: false,
-        currentCurrency: null,
 
         /**
          * Initialize
@@ -25,22 +23,9 @@
 
             console.log('7th Traditioner: Initializing plugin');
 
-            // Check if currency is in URL hash (from page reload after currency change)
-            const hash = window.location.hash;
-            if (hash && hash.includes('currency=')) {
-                const currency = hash.split('currency=')[1].split('&')[0];
-                $('#seventh-trad-currency').val(currency);
-                // Clear the hash
-                history.replaceState(null, null, ' ');
-            }
-
-            // Restore form data from sessionStorage after currency change reload
-            this.restoreFormData();
-
             this.initReCaptcha();
             this.bindEvents();
-
-            // PayPal SDK will be loaded by currency change trigger in bindEvents()
+            this.initSubmitButton();
         },
 
         /**
@@ -135,20 +120,6 @@
 
                 // Update min/max for selected currency
                 self.updateMinMaxForCurrency(currency);
-
-                // Reload page with new currency if PayPal SDK already loaded
-                if (self.paypalSDKLoaded && self.currentCurrency !== currency) {
-                    console.log('7th Traditioner: Currency changed to', currency, '- reloading page');
-                    // Save form data before reload
-                    self.saveFormData();
-                    // Store the new currency in URL hash so it persists on reload
-                    window.location.hash = 'currency=' + currency;
-                    window.location.reload();
-                } else if (!self.paypalSDKLoaded && self.currentCurrency === null) {
-                    // First load - load PayPal SDK
-                    console.log('7th Traditioner: Initial currency load:', currency);
-                    self.loadPayPalSDK(currency);
-                }
             }).trigger('change'); // Trigger on page load
 
             // Validate and format amount field with proper decimal places
@@ -516,137 +487,6 @@
         },
 
         /**
-         * Save form data to sessionStorage before currency reload
-         */
-        saveFormData: function() {
-            const formData = {
-                firstName: $('#seventh-trad-first-name').val(),
-                lastName: $('#seventh-trad-last-name').val(),
-                email: $('#seventh-trad-email').val(),
-                phone: $('#seventh-trad-phone').val(),
-                contributorType: $('#seventh-trad-contributor-type').val(),
-                meetingDay: $('#seventh-trad-meeting-day').val(),
-                meeting: $('#seventh-trad-meeting').val(),
-                meetingText: $('#seventh-trad-meeting option:selected').text(), // Save meeting name too
-                otherMeeting: $('#seventh-trad-other-meeting').val(),
-                groupId: $('#seventh-trad-group-id').val(),
-                amount: $('#seventh-trad-amount').val(),
-                customNotes: $('#seventh-trad-custom-notes').val()
-            };
-            sessionStorage.setItem('seventh_trad_form_data', JSON.stringify(formData));
-            console.log('7th Traditioner: Form data saved to sessionStorage');
-        },
-
-        /**
-         * Restore form data from sessionStorage after currency reload
-         */
-        restoreFormData: function() {
-            const savedData = sessionStorage.getItem('seventh_trad_form_data');
-            if (!savedData) {
-                return;
-            }
-
-            console.log('7th Traditioner: Restoring form data from sessionStorage');
-
-            try {
-                const formData = JSON.parse(savedData);
-                const self = this;
-
-                // Restore basic fields
-                $('#seventh-trad-first-name').val(formData.firstName || '');
-                $('#seventh-trad-last-name').val(formData.lastName || '');
-                $('#seventh-trad-email').val(formData.email || '');
-                $('#seventh-trad-phone').val(formData.phone || '');
-                $('#seventh-trad-amount').val(formData.amount || '');
-                $('#seventh-trad-custom-notes').val(formData.customNotes || '');
-
-                // Restore contributor type (triggers group fields if needed)
-                $('#seventh-trad-contributor-type').val(formData.contributorType || '').trigger('change');
-
-                // If group contributor, restore group-specific fields
-                if (formData.contributorType === 'group' && formData.meetingDay) {
-                    // Set meeting day and trigger change (loads meetings via AJAX)
-                    $('#seventh-trad-meeting-day').val(formData.meetingDay).trigger('change');
-
-                    // Wait for AJAX to complete, then restore meeting selection
-                    setTimeout(function() {
-                        if (formData.meeting) {
-                            // Try to select the saved meeting
-                            const $meetingSelect = $('#seventh-trad-meeting');
-                            $meetingSelect.val(formData.meeting);
-
-                            // If the value didn't stick (meeting not in dropdown), add it manually
-                            if ($meetingSelect.val() !== formData.meeting && formData.meetingText) {
-                                $meetingSelect.append(new Option(formData.meetingText, formData.meeting, true, true));
-                            }
-                        }
-
-                        // Restore other meeting field if it was visible
-                        if (formData.otherMeeting) {
-                            $('#seventh-trad-other-meeting').val(formData.otherMeeting);
-                        }
-
-                        // Restore group ID
-                        if (formData.groupId) {
-                            $('#seventh-trad-group-id').val(formData.groupId);
-                        }
-                    }, 500); // Wait 500ms for AJAX to complete
-                }
-
-                // Clear the stored data
-                sessionStorage.removeItem('seventh_trad_form_data');
-            } catch (e) {
-                console.error('7th Traditioner: Error restoring form data:', e);
-                sessionStorage.removeItem('seventh_trad_form_data');
-            }
-        },
-
-        /**
-         * Load PayPal SDK dynamically with specified currency
-         */
-        loadPayPalSDK: function(currency) {
-            const self = this;
-
-            // Don't load if already loaded
-            if (self.paypalSDKLoaded) {
-                console.log('7th Traditioner: PayPal SDK already loaded');
-                return;
-            }
-
-            console.log('7th Traditioner: Loading PayPal SDK for currency:', currency);
-
-            self.currentCurrency = currency;
-
-            // Build SDK URL with currency
-            const clientId = seventhTradData.paypal_client_id;
-            if (!clientId) {
-                console.error('7th Traditioner: No PayPal Client ID configured');
-                $('#seventh-trad-paypal-button').html('<div class="seventh-trad-error">PayPal is not configured. Please contact the administrator.</div>');
-                return;
-            }
-
-            const sdkUrl = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(clientId)
-                         + '&currency=' + encodeURIComponent(currency)
-                         + '&disable-funding=paylater';
-
-            // Load SDK script
-            const script = document.createElement('script');
-            script.src = sdkUrl;
-            script.async = true;
-            script.onload = function() {
-                console.log('7th Traditioner: PayPal SDK loaded successfully for', currency);
-                self.paypalSDKLoaded = true;
-                self.initSubmitButton();
-            };
-            script.onerror = function() {
-                console.error('7th Traditioner: Failed to load PayPal SDK');
-                $('#seventh-trad-paypal-button').html('<div class="seventh-trad-error">Failed to load PayPal. Please refresh the page.</div>');
-            };
-
-            document.head.appendChild(script);
-        },
-
-        /**
          * Initialize submit button and PayPal
          */
         initSubmitButton: function() {
@@ -654,7 +494,7 @@
 
             // Check if PayPal SDK is available
             if (typeof paypal === 'undefined') {
-                console.warn('7th Traditioner: PayPal SDK not loaded yet');
+                console.warn('7th Traditioner: PayPal SDK not loaded');
                 return;
             }
 

@@ -174,9 +174,20 @@ class Seventh_Traditioner {
             ? get_option('seventh_trad_paypal_live_client_id')
             : get_option('seventh_trad_paypal_sandbox_client_id');
 
-        // NOTE: PayPal SDK will be loaded dynamically by JavaScript based on selected currency
-        // This is required for multi-currency support since PayPal requires currency in SDK URL
-        // We pass the client ID to JavaScript instead of loading SDK here
+        if ($paypal_client_id) {
+            // Load PayPal SDK WITHOUT currency parameter
+            // Currency will be specified dynamically in createOrder() based on user selection
+            $sdk_url = 'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id)
+                     . '&disable-funding=paylater';
+
+            wp_enqueue_script(
+                'paypal-sdk',
+                $sdk_url,
+                array(),
+                null,
+                true
+            );
+        }
 
         // reCAPTCHA v3
         $recaptcha_site_key = get_option('seventh_trad_recaptcha_site_key');
