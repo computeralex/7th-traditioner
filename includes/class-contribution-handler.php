@@ -90,40 +90,8 @@ class Seventh_Trad_Contribution_Handler {
             ));
         }
 
-        // Validate min/max amounts (convert to USD for comparison)
-        $min_amount_usd = get_option('seventh_trad_min_contribution_amount', '');
-        $max_amount_usd = get_option('seventh_trad_max_contribution_amount', '');
-
-        if (!empty($min_amount_usd) || !empty($max_amount_usd)) {
-            // Convert contribution amount to USD for comparison
-            $amount_in_usd = $data['amount'];
-            if ($data['currency'] !== 'USD') {
-                $rate = Seventh_Trad_Exchange_Rates::get_rate(strtolower($data['currency']));
-                if ($rate) {
-                    $amount_in_usd = $data['amount'] / $rate; // Convert back to USD
-                }
-            }
-
-            // Check minimum
-            if (!empty($min_amount_usd) && $amount_in_usd < floatval($min_amount_usd)) {
-                wp_send_json_error(array(
-                    'message' => sprintf(
-                        __('Contribution amount must be at least $%s USD or equivalent.', '7th-traditioner'),
-                        number_format($min_amount_usd, 2)
-                    )
-                ));
-            }
-
-            // Check maximum
-            if (!empty($max_amount_usd) && $amount_in_usd > floatval($max_amount_usd)) {
-                wp_send_json_error(array(
-                    'message' => sprintf(
-                        __('Contribution amount cannot exceed $%s USD or equivalent.', '7th-traditioner'),
-                        number_format($max_amount_usd, 2)
-                    )
-                ));
-            }
-        }
+        // Note: Min/max validation is handled in frontend JavaScript only
+        // We don't enforce server-side to avoid rejecting payments that PayPal already captured
 
         // Check if transaction already exists
         $existing = Seventh_Trad_Database::get_contribution_by_transaction($data['transaction_id']);
