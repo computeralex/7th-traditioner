@@ -9,6 +9,56 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
 }
 
+/* Currency Selector (shown first) */
+.seventh-trad-currency-selector {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.seventh-trad-currency-selector h3 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.seventh-trad-currency-selector p {
+    margin: 0 0 30px;
+    color: #666;
+}
+
+/* Currency Locked Display (at top of form) */
+.seventh-trad-currency-locked {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    margin-bottom: 25px;
+}
+
+.seventh-trad-currency-info {
+    font-size: 16px;
+}
+
+.seventh-trad-currency-info strong {
+    margin-right: 8px;
+}
+
+.seventh-trad-button-link {
+    background: none;
+    border: none;
+    color: #0073aa;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+}
+
+.seventh-trad-button-link:hover {
+    color: #005a87;
+}
+
 .seventh-trad-form-wrapper {
     background: #ffffff;
     border-radius: 8px;
@@ -281,10 +331,9 @@ small.seventh-trad-help {
 /* Submit Button - Override Elementor and other theme styles */
 .seventh-trad-submit-container {
     margin: 30px 0 !important;
-    background-color: #ffffff;
+    background-color: transparent;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Help text inside PayPal button container - needs to be dark on white background */
@@ -433,157 +482,4 @@ small.seventh-trad-help {
     }
 }
 
-/* Dark mode support */
-/* Auto mode - follows system preference */
-@media (prefers-color-scheme: dark) {
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-form-wrapper {
-        background: #2d3748;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-title {
-        color: #f7fafc;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-description,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-field label {
-        color: #e2e8f0;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-tradition-notice {
-        background: #4a5568;
-        border-left-color: #63b3ed;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-tradition-notice p {
-        color: #e2e8f0;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-input,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-select,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-textarea {
-        background-color: #4a5568;
-        border-color: #718096;
-        color: #f7fafc;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-input:focus,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-select:focus,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-textarea:focus {
-        border-color: #63b3ed;
-        box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-help {
-        color: #a0aec0;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-help a,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-help a:link,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-help a:visited,
-    .seventh-trad-container[data-color-mode="auto"] #seventh-trad-add-other-meeting,
-    .seventh-trad-container[data-color-mode="auto"] #seventh-trad-select-from-list {
-        color: #d4af37 !important;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-help a:hover,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-help a:focus,
-    .seventh-trad-container[data-color-mode="auto"] #seventh-trad-add-other-meeting:hover,
-    .seventh-trad-container[data-color-mode="auto"] #seventh-trad-select-from-list:hover {
-        color: #f0c956 !important;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-currency-prefix {
-        color: #d4af37;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-footer {
-        border-top-color: #4a5568;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-secure,
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-loading p {
-        color: #ffffff;
-    }
-
-    .seventh-trad-container[data-color-mode="auto"] .seventh-trad-privacy {
-        color: #ffffff;
-    }
-}
-
-/* Force dark mode */
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-form-wrapper {
-    background: #2d3748;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-title {
-    color: #f7fafc;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-description,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-field label {
-    color: #e2e8f0;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-tradition-notice {
-    background: #4a5568;
-    border-left-color: #63b3ed;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-tradition-notice p {
-    color: #e2e8f0;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-input,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-select,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-textarea {
-    background-color: #4a5568;
-    border-color: #718096;
-    color: #f7fafc;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-input:focus,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-select:focus,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-textarea:focus {
-    border-color: #63b3ed;
-    box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-help {
-    color: #a0aec0;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-help a,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-help a:link,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-help a:visited,
-.seventh-trad-container[data-color-mode="dark"] #seventh-trad-add-other-meeting,
-.seventh-trad-container[data-color-mode="dark"] #seventh-trad-select-from-list {
-    color: #d4af37 !important;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-help a:hover,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-help a:focus,
-.seventh-trad-container[data-color-mode="dark"] #seventh-trad-add-other-meeting:hover,
-.seventh-trad-container[data-color-mode="dark"] #seventh-trad-select-from-list:hover {
-    color: #f0c956 !important;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-currency-prefix {
-    color: #d4af37;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-footer {
-    border-top-color: #4a5568;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-secure,
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-loading p {
-    color: #ffffff;
-}
-
-.seventh-trad-container[data-color-mode="dark"] .seventh-trad-privacy {
-    color: #ffffff;
-}
-
-/* Light mode is the default, no extra rules needed for data-color-mode="light" */
+/* Light mode only - dark mode removed for simplicity */

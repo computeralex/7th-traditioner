@@ -16,10 +16,9 @@ $enabled_currency_codes = get_option('seventh_trad_enabled_currencies', array_ke
 $currencies = array_intersect_key($all_currencies, array_flip($enabled_currency_codes));
 $default_currency = get_option('seventh_trad_default_currency', 'USD');
 $fellowship_name = seventh_trad_get_fellowship_name();
-$color_mode = get_option('seventh_trad_color_mode', 'auto');
 ?>
 
-<div class="seventh-trad-container" data-color-mode="<?php echo esc_attr($color_mode); ?>">
+<div class="seventh-trad-container">
     <div class="seventh-trad-form-wrapper">
         <?php if (!empty($atts['title'])) : ?>
             <h2 class="seventh-trad-title"><?php echo esc_html($atts['title']); ?></h2>
@@ -31,7 +30,39 @@ $color_mode = get_option('seventh_trad_color_mode', 'auto');
             </div>
         <?php endif; ?>
 
-        <form id="seventh-trad-form" class="seventh-trad-form">
+        <!-- Currency Selection (shown first, before form) -->
+        <div id="seventh-trad-currency-selector" class="seventh-trad-currency-selector">
+            <h3><?php esc_html_e('Select Your Currency', '7th-traditioner'); ?></h3>
+
+            <div class="seventh-trad-field">
+                <select id="seventh-trad-currency-choice" class="seventh-trad-select">
+                    <option value=""><?php esc_html_e('-- Choose Currency --', '7th-traditioner'); ?></option>
+                    <?php foreach ($currencies as $code => $details) : ?>
+                        <option
+                            value="<?php echo esc_attr($code); ?>"
+                            data-symbol="<?php echo esc_attr($details['symbol']); ?>"
+                            data-decimals="<?php echo esc_attr($details['decimals']); ?>"
+                            data-position="<?php echo esc_attr($details['position']); ?>"
+                        >
+                            <?php echo esc_html($details['name'] . ' (' . $code . ') ' . $details['symbol']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <form id="seventh-trad-form" class="seventh-trad-form" style="display: none;">
+            <!-- Currency locked in at top -->
+            <div class="seventh-trad-currency-locked">
+                <div class="seventh-trad-currency-info">
+                    <strong><?php esc_html_e('Currency:', '7th-traditioner'); ?></strong>
+                    <span id="seventh-trad-currency-display-text"></span>
+                </div>
+                <button type="button" id="seventh-trad-start-over" class="seventh-trad-button-link">
+                    <?php esc_html_e('Start Over', '7th-traditioner'); ?>
+                </button>
+            </div>
+
             <div class="seventh-trad-messages">
                 <div class="seventh-trad-success" style="display: none;"></div>
                 <div class="seventh-trad-error" style="display: none;"></div>
@@ -280,9 +311,6 @@ $color_mode = get_option('seventh_trad_color_mode', 'auto');
         <!-- PayPal Button Container (outside form to prevent conflicts) -->
         <div class="seventh-trad-submit-container">
             <div id="seventh-trad-paypal-button-container"></div>
-            <small class="seventh-trad-help" style="text-align: center; display: block; margin-top: 10px;">
-                <?php esc_html_e('All payments are securely processed by PayPal', '7th-traditioner'); ?>
-            </small>
         </div>
 
         <!-- Loading indicator -->

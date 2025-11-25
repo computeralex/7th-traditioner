@@ -10,6 +10,8 @@
     const SeventhTrad = {
         form: null,
         recaptchaToken: null,
+        selectedCurrency: null,
+        paypalSDKLoaded: false,
 
         /**
          * Initialize
@@ -25,7 +27,8 @@
 
             this.initReCaptcha();
             this.bindEvents();
-            this.initSubmitButton();
+            this.initCurrencySelector();
+            // Don't call initSubmitButton() yet - will be called after currency selection
         },
 
         /**
@@ -484,6 +487,98 @@
          */
         resetForm: function() {
             this.form[0].reset();
+        },
+
+        /**
+         * Initialize currency selector
+         */
+        initCurrencySelector: function() {
+            const self = this;
+
+            // Handle currency selection
+            $('#seventh-trad-currency-choice').on('change', function() {
+                const currency = $(this).val();
+
+                if (!currency) {
+                    return;
+                }
+
+                console.log('7th Traditioner: Currency selected:', currency);
+
+                // Store selected currency
+                self.selectedCurrency = currency;
+
+                // Get currency details
+                const $selected = $(this).find('option:selected');
+                const symbol = $selected.data('symbol');
+                const decimals = $selected.data('decimals');
+                const currencyName = $selected.text();
+
+                // Update currency display in form
+                $('#seventh-trad-currency-display-text').text(currencyName);
+
+                // Hide currency selector
+                $('#seventh-trad-currency-selector').hide();
+
+                // Show form
+                self.form.show();
+
+                // Load PayPal SDK with selected currency
+                self.loadPayPalSDK(currency);
+
+                // Update min/max for selected currency
+                self.updateMinMaxForCurrency(currency);
+
+                // Store currency info for amount field
+                $('#seventh-trad-amount').data('decimals', decimals);
+                $('#seventh-trad-currency-symbol').text(symbol);
+            });
+
+            // Handle "Start Over" button
+            $('#seventh-trad-start-over').on('click', function() {
+                // Reload the page to start fresh
+                window.location.reload();
+            });
+        },
+
+        /**
+         * Load PayPal SDK with specified currency
+         */
+        loadPayPalSDK: function(currency) {
+            const self = this;
+
+            if (self.paypalSDKLoaded) {
+                console.log('7th Traditioner: PayPal SDK already loaded');
+                return;
+            }
+
+            console.log('7th Traditioner: Loading PayPal SDK for currency:', currency);
+
+            const clientId = seventhTradData.paypal_client_id;
+            if (!clientId) {
+                console.error('7th Traditioner: No PayPal Client ID configured');
+                $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">PayPal is not configured. Please contact the administrator.</div>');
+                return;
+            }
+
+            const sdkUrl = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(clientId)
+                         + '&currency=' + encodeURIComponent(currency)
+                         + '&disable-funding=paylater';
+
+            const script = document.createElement('script');
+            script.src = sdkUrl;
+            script.async = true;
+            script.onload = function() {
+                console.log('7th Traditioner: PayPal SDK loaded successfully for', currency);
+                self.paypalSDKLoaded = true;
+                self.initSubmitButton();
+            };
+            script.onerror = function() {
+                console.error('7th Traditioner: Failed to load PayPal SDK');
+                $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">Failed to load PayPal. Please refresh the page.</div>');
+            };
+
+            document.head.appendChild(script);
         },
 
         /**
