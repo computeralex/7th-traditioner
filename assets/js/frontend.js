@@ -25,6 +25,15 @@
 
             console.log('7th Traditioner: Initializing plugin');
 
+            // Check if currency is in URL hash (from page reload after currency change)
+            const hash = window.location.hash;
+            if (hash && hash.includes('currency=')) {
+                const currency = hash.split('currency=')[1].split('&')[0];
+                $('#seventh-trad-currency').val(currency);
+                // Clear the hash
+                history.replaceState(null, null, ' ');
+            }
+
             this.initReCaptcha();
             this.bindEvents();
 
@@ -124,9 +133,15 @@
                 // Update min/max for selected currency
                 self.updateMinMaxForCurrency(currency);
 
-                // Reload PayPal SDK with new currency
-                if (self.currentCurrency !== currency) {
-                    console.log('7th Traditioner: Currency changed to', currency, '- reloading PayPal SDK');
+                // Reload page with new currency if PayPal SDK already loaded
+                if (self.paypalSDKLoaded && self.currentCurrency !== currency) {
+                    console.log('7th Traditioner: Currency changed to', currency, '- reloading page');
+                    // Store the new currency in URL hash so it persists on reload
+                    window.location.hash = 'currency=' + currency;
+                    window.location.reload();
+                } else if (!self.paypalSDKLoaded && self.currentCurrency === null) {
+                    // First load - load PayPal SDK
+                    console.log('7th Traditioner: Initial currency load:', currency);
                     self.loadPayPalSDK(currency);
                 }
             }).trigger('change'); // Trigger on page load
@@ -501,24 +516,14 @@
         loadPayPalSDK: function(currency) {
             const self = this;
 
-            // Don't reload if already loaded with this currency
-            if (self.currentCurrency === currency && self.paypalSDKLoaded) {
-                console.log('7th Traditioner: PayPal SDK already loaded for', currency);
+            // Don't load if already loaded
+            if (self.paypalSDKLoaded) {
+                console.log('7th Traditioner: PayPal SDK already loaded');
                 return;
             }
 
             console.log('7th Traditioner: Loading PayPal SDK for currency:', currency);
 
-            // Remove existing PayPal SDK script and buttons
-            $('script[src*="paypal.com/sdk/js"]').remove();
-            $('#seventh-trad-paypal-button').empty();
-
-            // Clear paypal global
-            if (typeof paypal !== 'undefined') {
-                delete window.paypal;
-            }
-
-            self.paypalSDKLoaded = false;
             self.currentCurrency = currency;
 
             // Build SDK URL with currency
@@ -533,7 +538,7 @@
                          + '&currency=' + encodeURIComponent(currency)
                          + '&disable-funding=paylater';
 
-            // Load new SDK script
+            // Load SDK script
             const script = document.createElement('script');
             script.src = sdkUrl;
             script.async = true;
