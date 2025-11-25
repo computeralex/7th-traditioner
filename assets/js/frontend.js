@@ -98,6 +98,7 @@
                 const symbol = $selected.data('symbol');
                 const decimals = parseInt($selected.data('decimals'));
                 const position = $selected.data('position');
+                const currency = $(this).val();
 
                 // Update symbol display
                 $('#seventh-trad-currency-symbol').text(symbol);
@@ -116,6 +117,9 @@
                     // Remove decimals from existing value
                     $amountField.val(currentValue.replace(/[^0-9]/g, ''));
                 }
+
+                // Update min/max for selected currency
+                self.updateMinMaxForCurrency(currency);
             }).trigger('change'); // Trigger on page load
 
             // Validate and format amount field with proper decimal places
@@ -672,6 +676,130 @@
             }
 
             return parts.join(' | ');
+        },
+
+        /**
+         * Update min/max amounts for selected currency
+         */
+        updateMinMaxForCurrency: function(currency) {
+            const self = this;
+
+            // If no min/max configured in settings, skip
+            if (!seventhTradData.minAmount && !seventhTradData.maxAmount) {
+                return;
+            }
+
+            // If USD, use the settings directly
+            if (currency === 'USD') {
+                self.applyMinMax(seventhTradData.minAmount, seventhTradData.maxAmount, currency);
+                return;
+            }
+
+            // For other currencies, fetch exchange rate and convert
+            $.ajax({
+                url: seventhTradData.ajax_url,
+                type: 'GET',
+                data: {
+                    action: 'seventh_trad_get_exchange_rate',
+                    currency: currency
+                },
+                success: function(response) {
+                    if (response.success && response.data.rate) {
+                        const rate = parseFloat(response.data.rate);
+                        const roundingMethod = seventhTradData.roundingMethod || 'smart';
+
+                        // Convert and round
+                        let convertedMin = null;
+                        let convertedMax = null;
+
+                        if (seventhTradData.minAmount) {
+                            convertedMin = parseFloat(seventhTradData.minAmount) * rate;
+                            convertedMin = self.roundAmount(convertedMin, currency, roundingMethod, 'up');
+                        }
+
+                        if (seventhTradData.maxAmount) {
+                            convertedMax = parseFloat(seventhTradData.maxAmount) * rate;
+                            convertedMax = self.roundAmount(convertedMax, currency, roundingMethod, 'down');
+                        }
+
+                        self.applyMinMax(convertedMin, convertedMax, currency);
+                    }
+                },
+                error: function() {
+                    console.warn('7th Traditioner: Failed to fetch exchange rate for ' + currency);
+                    // Gracefully degrade - don't enforce min/max if we can't convert
+                }
+            });
+        },
+
+        /**
+         * Apply min/max to form
+         */
+        applyMinMax: function(min, max, currency) {
+            const $amountField = $('#seventh-trad-amount');
+
+            // Store for validation
+            $amountField.data('min-amount', min);
+            $amountField.data('max-amount', max);
+            $amountField.data('currency', currency);
+
+            // Update HTML5 validation
+            if (min) {
+                $amountField.attr('min', min);
+            } else {
+                $amountField.removeAttr('min');
+            }
+
+            if (max) {
+                $amountField.attr('max', max);
+            } else {
+                $amountField.removeAttr('max');
+            }
+        },
+
+        /**
+         * Round amount based on method
+         */
+        roundAmount: function(amount, currency, method, direction) {
+            if (method === 'simple') {
+                // Get currency decimals
+                const decimals = parseInt($('#seventh-trad-currency option:selected').data('decimals')) || 2;
+                return parseFloat(amount.toFixed(decimals));
+            }
+
+            // Smart rounding
+            switch (currency) {
+                case 'JPY':
+                case 'KRW':
+                    // Round to nearest 50
+                    return direction === 'up'
+                        ? Math.ceil(amount / 50) * 50
+                        : Math.floor(amount / 50) * 50;
+
+                case 'INR':
+                case 'THB':
+                    // Round to nearest 5
+                    return direction === 'up'
+                        ? Math.ceil(amount / 5) * 5
+                        : Math.floor(amount / 5) * 5;
+
+                case 'VND':
+                    // Round to nearest 1000
+                    return direction === 'up'
+                        ? Math.ceil(amount / 1000) * 1000
+                        : Math.floor(amount / 1000) * 1000;
+
+                case 'CLP':
+                case 'IDR':
+                    // Round to nearest 100
+                    return direction === 'up'
+                        ? Math.ceil(amount / 100) * 100
+                        : Math.floor(amount / 100) * 100;
+
+                default:
+                    // Most currencies - round to whole number
+                    return direction === 'up' ? Math.ceil(amount) : Math.floor(amount);
+            }
         }
     };
 

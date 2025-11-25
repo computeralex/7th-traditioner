@@ -213,6 +213,46 @@ class Seventh_Trad_Settings {
                     </p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row">
+                    <label for="min_contribution_amount"><?php esc_html_e('Minimum Contribution Amount (USD)', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <?php $min_amount = get_option('seventh_trad_min_contribution_amount', ''); ?>
+                    <input type="number" id="min_contribution_amount" name="min_contribution_amount" value="<?php echo esc_attr($min_amount); ?>" class="small-text" min="0" step="0.01" placeholder="<?php esc_attr_e('No minimum', '7th-traditioner'); ?>" />
+                    <p class="description">
+                        <?php esc_html_e('Leave blank for no minimum. Automatically converted to other currencies using current exchange rates.', '7th-traditioner'); ?><br>
+                        <?php esc_html_e('Recommended: $1-2 USD to prevent card testing fraud.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="max_contribution_amount"><?php esc_html_e('Maximum Contribution Amount (USD)', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <?php $max_amount = get_option('seventh_trad_max_contribution_amount', ''); ?>
+                    <input type="number" id="max_contribution_amount" name="max_contribution_amount" value="<?php echo esc_attr($max_amount); ?>" class="regular-text" min="0" step="0.01" placeholder="<?php esc_attr_e('No maximum', '7th-traditioner'); ?>" />
+                    <p class="description">
+                        <?php esc_html_e('Leave blank for no maximum. Automatically converted to other currencies using current exchange rates.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="amount_rounding_method"><?php esc_html_e('Amount Rounding Method', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <?php $rounding_method = get_option('seventh_trad_amount_rounding_method', 'smart'); ?>
+                    <select id="amount_rounding_method" name="amount_rounding_method" class="regular-text">
+                        <option value="simple" <?php selected($rounding_method, 'simple'); ?>><?php esc_html_e('Simple (No Rounding)', '7th-traditioner'); ?></option>
+                        <option value="smart" <?php selected($rounding_method, 'smart'); ?>><?php esc_html_e('Smart (Round to Clean Numbers)', '7th-traditioner'); ?></option>
+                    </select>
+                    <p class="description">
+                        <?php esc_html_e('Simple: Show exact converted amounts (e.g., €0.92). Smart: Round to whole numbers for better UX (e.g., €1.00, ¥150, ₹85).', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
         </table>
 
         <h2><?php esc_html_e('Shortcode Usage', '7th-traditioner'); ?></h2>
@@ -663,6 +703,30 @@ class Seventh_Trad_Settings {
             $color_mode = sanitize_text_field($_POST['color_mode']);
             if (in_array($color_mode, array('auto', 'light', 'dark'))) {
                 update_option('seventh_trad_color_mode', $color_mode);
+            }
+        }
+
+        // Save minimum contribution amount
+        if (isset($_POST['min_contribution_amount'])) {
+            $min_amount = sanitize_text_field($_POST['min_contribution_amount']);
+            if ($min_amount === '' || (is_numeric($min_amount) && floatval($min_amount) >= 0)) {
+                update_option('seventh_trad_min_contribution_amount', $min_amount);
+            }
+        }
+
+        // Save maximum contribution amount
+        if (isset($_POST['max_contribution_amount'])) {
+            $max_amount = sanitize_text_field($_POST['max_contribution_amount']);
+            if ($max_amount === '' || (is_numeric($max_amount) && floatval($max_amount) >= 0)) {
+                update_option('seventh_trad_max_contribution_amount', $max_amount);
+            }
+        }
+
+        // Save amount rounding method
+        if (isset($_POST['amount_rounding_method'])) {
+            $rounding_method = sanitize_text_field($_POST['amount_rounding_method']);
+            if (in_array($rounding_method, array('simple', 'smart'))) {
+                update_option('seventh_trad_amount_rounding_method', $rounding_method);
             }
         }
 

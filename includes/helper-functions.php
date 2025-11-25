@@ -376,6 +376,23 @@ function seventh_trad_get_fellowship_name() {
 }
 
 /**
+ * Get currency decimal places
+ *
+ * @param string $currency_code Currency code (e.g., 'USD', 'EUR')
+ * @return int Number of decimal places
+ */
+function seventh_trad_get_currency_decimals($currency_code) {
+    $currencies = seventh_trad_get_supported_currencies();
+
+    if (isset($currencies[$currency_code]['decimals'])) {
+        return $currencies[$currency_code]['decimals'];
+    }
+
+    // Default to 2 decimals
+    return 2;
+}
+
+/**
  * Sanitize contribution data
  *
  * @param array $data Raw data

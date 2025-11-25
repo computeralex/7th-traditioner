@@ -62,6 +62,7 @@ class Seventh_Traditioner {
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-contribution-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-paypal-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-email-handler.php';
+        require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-exchange-rates.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-settings.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-contributions.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-shortcodes.php';
@@ -96,6 +97,9 @@ class Seventh_Traditioner {
         add_action('wp_ajax_seventh_trad_send_test_email', array($this, 'ajax_send_test_email'));
 
         add_action('wp_ajax_seventh_trad_get_contribution_details', array($this, 'ajax_get_contribution_details'));
+
+        add_action('wp_ajax_seventh_trad_get_exchange_rate', array('Seventh_Trad_Exchange_Rates', 'ajax_get_rate'));
+        add_action('wp_ajax_nopriv_seventh_trad_get_exchange_rate', array('Seventh_Trad_Exchange_Rates', 'ajax_get_rate'));
 
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
@@ -204,6 +208,9 @@ class Seventh_Traditioner {
             'nonce' => wp_create_nonce('seventh_trad_nonce'),
             'recaptcha_site_key' => $recaptcha_site_key,
             'paypal_mode' => get_option('seventh_trad_paypal_mode', 'sandbox'),
+            'minAmount' => get_option('seventh_trad_min_contribution_amount', ''),
+            'maxAmount' => get_option('seventh_trad_max_contribution_amount', ''),
+            'roundingMethod' => get_option('seventh_trad_amount_rounding_method', 'smart'),
             'strings' => array(
                 'processing' => __('Processing contribution...', '7th-traditioner'),
                 'success' => __('Thank you for your contribution!', '7th-traditioner'),
