@@ -10,6 +10,8 @@
     const SeventhTrad = {
         form: null,
         recaptchaToken: null,
+        paypalSDKLoaded: false,
+        currentCurrency: null,
 
         /**
          * Initialize
@@ -25,7 +27,10 @@
 
             this.initReCaptcha();
             this.bindEvents();
-            this.initSubmitButton();
+
+            // Load PayPal SDK with initial currency
+            const initialCurrency = $('#seventh-trad-currency').val() || 'USD';
+            this.loadPayPalSDK(initialCurrency);
         },
 
         /**
@@ -120,6 +125,12 @@
 
                 // Update min/max for selected currency
                 self.updateMinMaxForCurrency(currency);
+
+                // Reload PayPal SDK with new currency
+                if (self.currentCurrency !== currency) {
+                    console.log('7th Traditioner: Currency changed to', currency, '- reloading PayPal SDK');
+                    self.loadPayPalSDK(currency);
+                }
             }).trigger('change'); // Trigger on page load
 
             // Validate and format amount field with proper decimal places
@@ -440,13 +451,27 @@
             const $error = $('.seventh-trad-error');
             const $success = $('.seventh-trad-success');
 
-            $success.hide().css('display', 'none');
-            $error.html(message).css('display', 'block').hide().slideDown();
+            console.log('7th Traditioner: showError called with message:', message);
+            console.log('7th Traditioner: Error div found:', $error.length);
+            console.log('7th Traditioner: Error div HTML before:', $error.html());
+
+            $success.hide();
+            $error.html(message).css('display', 'block').show();
+
+            console.log('7th Traditioner: Error div display:', $error.css('display'));
+            console.log('7th Traditioner: Error div visible:', $error.is(':visible'));
+            console.log('7th Traditioner: Error div HTML after:', $error.html());
 
             // Scroll to message
-            $('html, body').animate({
-                scrollTop: $error.offset().top - 100
-            }, 500);
+            setTimeout(() => {
+                const errorOffset = $error.offset();
+                console.log('7th Traditioner: Error offset:', errorOffset);
+                if (errorOffset && errorOffset.top > 0) {
+                    $('html, body').animate({
+                        scrollTop: errorOffset.top - 100
+                    }, 500);
+                }
+            }, 100);
         },
 
         /**
@@ -472,6 +497,60 @@
             this.form[0].reset();
         },
 
+        /**
+         * Load PayPal SDK dynamically with specified currency
+         */
+        loadPayPalSDK: function(currency) {
+            const self = this;
+
+            // Don't reload if already loaded with this currency
+            if (self.currentCurrency === currency && self.paypalSDKLoaded) {
+                console.log('7th Traditioner: PayPal SDK already loaded for', currency);
+                return;
+            }
+
+            console.log('7th Traditioner: Loading PayPal SDK for currency:', currency);
+
+            // Remove existing PayPal SDK script and buttons
+            $('script[src*="paypal.com/sdk/js"]').remove();
+            $('#seventh-trad-paypal-button').empty();
+
+            // Clear paypal global
+            if (typeof paypal !== 'undefined') {
+                delete window.paypal;
+            }
+
+            self.paypalSDKLoaded = false;
+            self.currentCurrency = currency;
+
+            // Build SDK URL with currency
+            const clientId = seventhTradData.paypal_client_id;
+            if (!clientId) {
+                console.error('7th Traditioner: No PayPal Client ID configured');
+                $('#seventh-trad-paypal-button').html('<div class="seventh-trad-error">PayPal is not configured. Please contact the administrator.</div>');
+                return;
+            }
+
+            const sdkUrl = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(clientId)
+                         + '&currency=' + encodeURIComponent(currency)
+                         + '&disable-funding=paylater';
+
+            // Load new SDK script
+            const script = document.createElement('script');
+            script.src = sdkUrl;
+            script.async = true;
+            script.onload = function() {
+                console.log('7th Traditioner: PayPal SDK loaded successfully for', currency);
+                self.paypalSDKLoaded = true;
+                self.initSubmitButton();
+            };
+            script.onerror = function() {
+                console.error('7th Traditioner: Failed to load PayPal SDK');
+                $('#seventh-trad-paypal-button').html('<div class="seventh-trad-error">Failed to load PayPal. Please refresh the page.</div>');
+            };
+
+            document.head.appendChild(script);
+        },
 
         /**
          * Initialize submit button and PayPal
@@ -481,7 +560,7 @@
 
             // Check if PayPal SDK is available
             if (typeof paypal === 'undefined') {
-                console.warn('7th Traditioner: PayPal SDK not loaded');
+                console.warn('7th Traditioner: PayPal SDK not loaded yet');
                 return;
             }
 
@@ -506,6 +585,14 @@
                     if (!form.checkValidity()) {
                         console.log('7th Traditioner: Browser validation failed');
                         form.reportValidity(); // Shows browser validation messages
+
+                        // Also show custom error since reportValidity doesn't always work in iframe context
+                        const firstInvalid = form.querySelector(':invalid');
+                        if (firstInvalid) {
+                            const fieldLabel = $('label[for="' + firstInvalid.id + '"]').text().trim().replace('*', '').trim();
+                            self.showError('Please fill out required field: ' + fieldLabel);
+                        }
+
                         return actions.reject();
                     }
 

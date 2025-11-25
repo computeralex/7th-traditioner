@@ -174,21 +174,9 @@ class Seventh_Traditioner {
             ? get_option('seventh_trad_paypal_live_client_id')
             : get_option('seventh_trad_paypal_sandbox_client_id');
 
-        if ($paypal_client_id) {
-            // Disable Pay Later - we don't want people borrowing money to contribute!
-            // Allow cards for one-time contributions, but recurring requires PayPal account
-            // NOTE: We don't specify currency in SDK URL to allow multiple currencies
-            $sdk_url = 'https://www.paypal.com/sdk/js?client-id=' . esc_attr($paypal_client_id)
-                     . '&disable-funding=paylater';
-
-            wp_enqueue_script(
-                'paypal-sdk',
-                $sdk_url,
-                array(),
-                null,
-                true
-            );
-        }
+        // NOTE: PayPal SDK will be loaded dynamically by JavaScript based on selected currency
+        // This is required for multi-currency support since PayPal requires currency in SDK URL
+        // We pass the client ID to JavaScript instead of loading SDK here
 
         // reCAPTCHA v3
         $recaptcha_site_key = get_option('seventh_trad_recaptcha_site_key');
@@ -207,6 +195,7 @@ class Seventh_Traditioner {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('seventh_trad_nonce'),
             'recaptcha_site_key' => $recaptcha_site_key,
+            'paypal_client_id' => $paypal_client_id,
             'paypal_mode' => get_option('seventh_trad_paypal_mode', 'sandbox'),
             'minAmount' => get_option('seventh_trad_min_contribution_amount', ''),
             'maxAmount' => get_option('seventh_trad_max_contribution_amount', ''),
