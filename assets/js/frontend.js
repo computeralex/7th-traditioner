@@ -527,7 +527,9 @@
                 contributorType: $('#seventh-trad-contributor-type').val(),
                 meetingDay: $('#seventh-trad-meeting-day').val(),
                 meeting: $('#seventh-trad-meeting').val(),
+                meetingText: $('#seventh-trad-meeting option:selected').text(), // Save meeting name too
                 otherMeeting: $('#seventh-trad-other-meeting').val(),
+                groupId: $('#seventh-trad-group-id').val(),
                 amount: $('#seventh-trad-amount').val(),
                 customNotes: $('#seventh-trad-custom-notes').val()
             };
@@ -548,17 +550,48 @@
 
             try {
                 const formData = JSON.parse(savedData);
+                const self = this;
 
+                // Restore basic fields
                 $('#seventh-trad-first-name').val(formData.firstName || '');
                 $('#seventh-trad-last-name').val(formData.lastName || '');
                 $('#seventh-trad-email').val(formData.email || '');
                 $('#seventh-trad-phone').val(formData.phone || '');
-                $('#seventh-trad-contributor-type').val(formData.contributorType || '').trigger('change');
-                $('#seventh-trad-meeting-day').val(formData.meetingDay || '').trigger('change');
-                $('#seventh-trad-meeting').val(formData.meeting || '');
-                $('#seventh-trad-other-meeting').val(formData.otherMeeting || '');
                 $('#seventh-trad-amount').val(formData.amount || '');
                 $('#seventh-trad-custom-notes').val(formData.customNotes || '');
+
+                // Restore contributor type (triggers group fields if needed)
+                $('#seventh-trad-contributor-type').val(formData.contributorType || '').trigger('change');
+
+                // If group contributor, restore group-specific fields
+                if (formData.contributorType === 'group' && formData.meetingDay) {
+                    // Set meeting day and trigger change (loads meetings via AJAX)
+                    $('#seventh-trad-meeting-day').val(formData.meetingDay).trigger('change');
+
+                    // Wait for AJAX to complete, then restore meeting selection
+                    setTimeout(function() {
+                        if (formData.meeting) {
+                            // Try to select the saved meeting
+                            const $meetingSelect = $('#seventh-trad-meeting');
+                            $meetingSelect.val(formData.meeting);
+
+                            // If the value didn't stick (meeting not in dropdown), add it manually
+                            if ($meetingSelect.val() !== formData.meeting && formData.meetingText) {
+                                $meetingSelect.append(new Option(formData.meetingText, formData.meeting, true, true));
+                            }
+                        }
+
+                        // Restore other meeting field if it was visible
+                        if (formData.otherMeeting) {
+                            $('#seventh-trad-other-meeting').val(formData.otherMeeting);
+                        }
+
+                        // Restore group ID
+                        if (formData.groupId) {
+                            $('#seventh-trad-group-id').val(formData.groupId);
+                        }
+                    }, 500); // Wait 500ms for AJAX to complete
+                }
 
                 // Clear the stored data
                 sessionStorage.removeItem('seventh_trad_form_data');
