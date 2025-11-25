@@ -30,8 +30,7 @@ class Seventh_Trad_Email_Handler {
         $fellowship_name = seventh_trad_get_fellowship_name();
 
         // Get custom email subject or use default
-        $email_subject = get_option('seventh_trad_email_subject', 'Contribution Receipt');
-        $subject = $email_subject . ' - ' . $fellowship_name;
+        $subject = get_option('seventh_trad_email_subject', 'Contribution Receipt');
 
         // Build email content
         $message = self::get_receipt_template($contribution);
@@ -137,23 +136,22 @@ class Seventh_Trad_Email_Handler {
                                                         </td>
                                                     </tr>
                                                     <?php if ($contribution->contribution_type === 'group') : ?>
-                                                        <?php if (!empty($contribution->meeting_day)) : ?>
-                                                        <tr>
-                                                            <td style="color: #000000; font-size: 14px; padding: 8px 0;">
-                                                                <?php echo esc_html__('Meeting Day:', '7th-traditioner'); ?>
-                                                            </td>
-                                                            <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
-                                                                <?php echo esc_html(seventh_trad_get_day_name($contribution->meeting_day)); ?>
-                                                            </td>
-                                                        </tr>
-                                                        <?php endif; ?>
                                                         <?php if (!empty($contribution->group_name)) : ?>
                                                         <tr>
                                                             <td style="color: #000000; font-size: 14px; padding: 8px 0;">
-                                                                <?php echo esc_html__('Meeting Time & Name:', '7th-traditioner'); ?>
+                                                                <?php echo esc_html__('Group:', '7th-traditioner'); ?>
                                                             </td>
                                                             <td style="color: #2d3748; font-size: 14px; text-align: right; padding: 8px 0;">
-                                                                <?php echo esc_html($contribution->group_name); ?>
+                                                                <?php
+                                                                // Build group display: [Day abbrev.] [time] [name]
+                                                                $group_display = '';
+                                                                if (!empty($contribution->meeting_day)) {
+                                                                    $day_name = seventh_trad_get_day_name($contribution->meeting_day);
+                                                                    $group_display = substr($day_name, 0, 3) . ' '; // First 3 letters (Mon, Tue, etc.)
+                                                                }
+                                                                $group_display .= $contribution->group_name;
+                                                                echo esc_html($group_display);
+                                                                ?>
                                                             </td>
                                                         </tr>
                                                         <?php endif; ?>

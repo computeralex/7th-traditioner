@@ -195,22 +195,6 @@ class Seventh_Trad_Settings {
             </tr>
             <tr>
                 <th scope="row">
-                    <label for="color_mode"><?php esc_html_e('Form Color Mode', '7th-traditioner'); ?></label>
-                </th>
-                <td>
-                    <?php $color_mode = get_option('seventh_trad_color_mode', 'auto'); ?>
-                    <select id="color_mode" name="color_mode" class="regular-text">
-                        <option value="auto" <?php selected($color_mode, 'auto'); ?>><?php esc_html_e('Auto (Follow System Preference)', '7th-traditioner'); ?></option>
-                        <option value="light" <?php selected($color_mode, 'light'); ?>><?php esc_html_e('Light Mode', '7th-traditioner'); ?></option>
-                        <option value="dark" <?php selected($color_mode, 'dark'); ?>><?php esc_html_e('Dark Mode', '7th-traditioner'); ?></option>
-                    </select>
-                    <p class="description">
-                        <?php esc_html_e('Choose the color scheme for the contribution form. Auto will use the visitor\'s system preference.', '7th-traditioner'); ?>
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">
                     <label for="min_contribution_amount"><?php esc_html_e('Minimum Contribution Amount (USD)', '7th-traditioner'); ?></label>
                 </th>
                 <td>
@@ -670,13 +654,6 @@ class Seventh_Trad_Settings {
         // Save show_group_id (checkbox)
         update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? '1' : '0');
 
-        // Save color mode
-        if (isset($_POST['color_mode'])) {
-            $color_mode = sanitize_text_field($_POST['color_mode']);
-            if (in_array($color_mode, array('auto', 'light', 'dark'))) {
-                update_option('seventh_trad_color_mode', $color_mode);
-            }
-        }
 
         // Save minimum contribution amount
         if (isset($_POST['min_contribution_amount'])) {

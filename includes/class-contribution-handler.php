@@ -71,6 +71,8 @@ class Seventh_Trad_Contribution_Handler {
         $data = seventh_trad_sanitize_contribution_data($_POST);
 
         // Debug log
+        error_log('7th Traditioner: Raw POST meeting_day - ' . print_r($_POST['meeting_day'] ?? 'NOT SET', true));
+        error_log('7th Traditioner: Sanitized meeting_day - ' . print_r($data['meeting_day'] ?? 'NOT SET', true));
         error_log('7th Traditioner: Sanitized data - ' . json_encode($data));
 
         // Validate name

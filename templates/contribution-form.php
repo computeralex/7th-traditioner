@@ -21,7 +21,15 @@ $single_currency_mode = (count($currencies) === 1);
 $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
 ?>
 
-<div class="seventh-trad-container" data-single-currency="<?php echo $single_currency_mode ? 'true' : 'false'; ?>" data-auto-currency="<?php echo esc_attr($auto_currency); ?>">
+<div class="seventh-trad-container"
+     data-single-currency="<?php echo $single_currency_mode ? 'true' : 'false'; ?>"
+     data-auto-currency="<?php echo esc_attr($auto_currency); ?>"
+     <?php if ($single_currency_mode && $auto_currency) : ?>
+     data-currency-symbol="<?php echo esc_attr($currencies[$auto_currency]['symbol']); ?>"
+     data-currency-decimals="<?php echo esc_attr($currencies[$auto_currency]['decimals']); ?>"
+     data-currency-name="<?php echo esc_attr($currencies[$auto_currency]['name'] . ' (' . $auto_currency . ') ' . $currencies[$auto_currency]['symbol']); ?>"
+     <?php endif; ?>
+>
     <div class="seventh-trad-form-wrapper">
         <?php if (!empty($atts['title'])) : ?>
             <h2 class="seventh-trad-title"><?php echo esc_html($atts['title']); ?></h2>

@@ -100,18 +100,20 @@ class Seventh_Trad_Contributions {
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <tr>
+                            <th><?php self::render_sortable_header('date', __('Date', '7th-traditioner'), $sort_by, $sort_order); ?></th>
                             <th><?php self::render_sortable_header('name', __('Name', '7th-traditioner'), $sort_by, $sort_order); ?></th>
                             <th><?php self::render_sortable_header('email', __('Email', '7th-traditioner'), $sort_by, $sort_order); ?></th>
                             <th><?php self::render_sortable_header('phone', __('Phone', '7th-traditioner'), $sort_by, $sort_order); ?></th>
                             <th><?php esc_html_e('Individual/Group', '7th-traditioner'); ?></th>
                             <th><?php esc_html_e('Group Info', '7th-traditioner'); ?></th>
-                            <th><?php self::render_sortable_header('amount', __('Amount (USD)', '7th-traditioner'), $sort_by, $sort_order); ?></th>
+                            <th><?php self::render_sortable_header('amount', __('Amount', '7th-traditioner'), $sort_by, $sort_order); ?></th>
                             <th><?php esc_html_e('Details', '7th-traditioner'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($contributions as $contribution) : ?>
                             <tr>
+                                <td><?php echo esc_html(date_i18n('M j, Y', strtotime($contribution->contribution_date))); ?></td>
                                 <td><?php echo esc_html($contribution->member_name); ?></td>
                                 <td><?php echo esc_html($contribution->member_email); ?></td>
                                 <td><?php echo esc_html(!empty($contribution->member_phone) ? $contribution->member_phone : '—'); ?></td>
@@ -125,14 +127,7 @@ class Seventh_Trad_Contributions {
                                 </td>
                                 <td>
                                     <strong>
-                                        <?php
-                                        // Convert to USD if needed
-                                        $usd_amount = $contribution->amount;
-                                        if ($contribution->currency !== 'USD') {
-                                            $usd_amount = $contribution->amount; // TODO: Add conversion if needed
-                                        }
-                                        echo esc_html(seventh_trad_format_amount($usd_amount, 'USD'));
-                                        ?>
+                                        <?php echo esc_html(seventh_trad_format_amount($contribution->amount, $contribution->currency)); ?>
                                     </strong>
                                 </td>
                                 <td>
@@ -144,14 +139,27 @@ class Seventh_Trad_Contributions {
                         <?php endforeach; ?>
                     </tbody>
                     <tfoot>
+                        <?php
+                        // Check if all contributions use the same currency
+                        $currencies_used = array_unique(array_column($contributions, 'currency'));
+                        $single_currency = (count($currencies_used) === 1) ? $currencies_used[0] : null;
+                        ?>
+                        <?php if ($single_currency) : ?>
                         <tr>
-                            <td colspan="5" style="text-align: right; font-weight: bold;">
+                            <td colspan="6" style="text-align: right; font-weight: bold;">
                                 <?php esc_html_e('Total:', '7th-traditioner'); ?>
                             </td>
                             <td colspan="2" style="font-weight: bold; font-size: 16px;">
-                                <?php echo esc_html(seventh_trad_format_amount($total_amount, 'USD')); ?>
+                                <?php echo esc_html(seventh_trad_format_amount($total_amount, $single_currency)); ?>
                             </td>
                         </tr>
+                        <?php else : ?>
+                        <tr>
+                            <td colspan="8" style="text-align: center; font-style: italic; color: #666;">
+                                <?php esc_html_e('Multiple currencies - totals cannot be combined', '7th-traditioner'); ?>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </tfoot>
                 </table>
 

@@ -305,49 +305,43 @@
         saveContribution: async function(orderData, recaptchaToken) {
             const self = this;
 
-            const contributorType = $('#seventh-trad-contributor-type').val();
-            const meetingDay = $('#seventh-trad-meeting-day').val();
+            // Safety check - if cachedFormData doesn't exist, something went wrong
+            if (!self.cachedFormData) {
+                console.error('ERROR: cachedFormData is missing!');
+                self.showError('Form data was lost. Please try again.');
+                return;
+            }
 
+            console.log('DEBUG: Using cached form data:', self.cachedFormData);
 
-            const firstName = $('#seventh-trad-first-name').val();
-            const lastName = $('#seventh-trad-last-name').val();
-            const fullName = firstName + ' ' + lastName;
-
+            // Use cached form data that was captured during createOrder
             const formData = {
                 action: 'seventh_trad_save_contribution',
                 nonce: seventhTradData.nonce,
                 recaptcha_token: recaptchaToken || '',
                 transaction_id: orderData.id,
                 paypal_order_id: orderData.id,
-                member_name: fullName,
-                member_email: $('#seventh-trad-email').val(),
-                phone: $('#seventh-trad-phone').val(),
-                contributor_type: contributorType,
-                amount: $('#seventh-trad-amount').val(),
+                member_name: self.cachedFormData.member_name,
+                member_email: self.cachedFormData.member_email,
+                phone: self.cachedFormData.phone,
+                contributor_type: self.cachedFormData.contributor_type,
+                amount: self.cachedFormData.amount,
                 currency: self.selectedCurrency,
                 paypal_status: orderData.status,
-                custom_notes: $('#seventh-trad-notes').val()
+                custom_notes: self.cachedFormData.custom_notes
             };
 
-            // Add group-specific fields if contributing on behalf of group
-            if (contributorType === 'group') {
-                formData.meeting_day = meetingDay;
+            // Add group-specific fields if this was a group contribution
+            if (self.cachedFormData.contributor_type === 'group') {
+                formData.meeting_day = self.cachedFormData.meeting_day;
+                formData.meeting_id = self.cachedFormData.meeting_id || '';
+                formData.meeting_name = self.cachedFormData.meeting_name || '';
+                formData.group_id = self.cachedFormData.group_id || '';
 
-                // Check if manual entry mode is active
-                const isManualEntry = $('#other-meeting-field').is(':visible');
-
-                if (isManualEntry) {
-                    formData.meeting_name = $('#seventh-trad-other-meeting').val();
-                    formData.meeting_id = '';
-                } else {
-                    const $selectedMeeting = $('#seventh-trad-meeting option:selected');
-                    formData.meeting_id = $('#seventh-trad-meeting').val();
-                    formData.meeting_name = $selectedMeeting.text();
-                }
-
-                formData.group_id = $('#seventh-trad-group-id').val();
+                console.log('DEBUG: Adding group fields - meeting_day:', formData.meeting_day);
             }
 
+            console.log('DEBUG: Final formData being sent to server:', formData);
 
             $.ajax({
                 url: seventhTradData.ajax_url,
@@ -458,8 +452,14 @@
         initCurrencySelector: function() {
             const self = this;
 
+            // Handle "Start Over" button (must be before early return)
+            $('#seventh-trad-start-over').on('click', function() {
+                // Reload the page to start fresh
+                window.location.reload();
+            });
+
             // Check if only one currency is enabled - auto-select it
-            const isSingleCurrency = $('.seventh-trad-container').data('single-currency') === 'true';
+            const isSingleCurrency = $('.seventh-trad-container').data('single-currency') === true;
             const autoCurrency = $('.seventh-trad-container').data('auto-currency');
 
             if (isSingleCurrency && autoCurrency) {
@@ -474,12 +474,6 @@
                     self.selectCurrency(currency);
                 }
             });
-
-            // Handle "Start Over" button
-            $('#seventh-trad-start-over').on('click', function() {
-                // Reload the page to start fresh
-                window.location.reload();
-            });
         },
 
         /**
@@ -488,15 +482,27 @@
         selectCurrency: function(currency) {
             const self = this;
 
-
             // Store selected currency
             self.selectedCurrency = currency;
 
-            // Get currency details from the dropdown or data attributes
-            const $option = $('#seventh-trad-currency-choice option[value="' + currency + '"]');
-            const symbol = $option.data('symbol');
-            const decimals = $option.data('decimals');
-            const currencyName = $option.text() || currency;
+            // Get currency details from the dropdown or data attributes (for single currency mode)
+            const $container = $('.seventh-trad-container');
+            const isSingleCurrency = $container.data('single-currency') === true;
+
+            let symbol, decimals, currencyName;
+
+            if (isSingleCurrency) {
+                // Get from container data attributes
+                symbol = $container.data('currency-symbol');
+                decimals = $container.data('currency-decimals');
+                currencyName = $container.data('currency-name');
+            } else {
+                // Get from dropdown option
+                const $option = $('#seventh-trad-currency-choice option[value="' + currency + '"]');
+                symbol = $option.data('symbol');
+                decimals = $option.data('decimals');
+                currencyName = $option.text() || currency;
+            }
 
             // Update currency display in form
             $('#seventh-trad-currency-display-text').text(currencyName);
@@ -621,6 +627,39 @@
                     const email = $('#seventh-trad-email').val();
                     const firstName = $('#seventh-trad-first-name').val();
                     const lastName = $('#seventh-trad-last-name').val();
+                    const contributorType = $('#seventh-trad-contributor-type').val();
+
+                    // Cache form data NOW (before PayPal popup opens) so it's available when saveContribution runs later
+                    self.cachedFormData = {
+                        member_name: firstName.trim() + ' ' + lastName.trim(),
+                        member_email: email,
+                        phone: $('#seventh-trad-phone').val(),
+                        contributor_type: contributorType,
+                        amount: amount,
+                        custom_notes: $('#seventh-trad-notes').val()
+                    };
+
+                    // Cache group-specific fields if this is a group contribution
+                    if (contributorType === 'group') {
+                        const meetingDay = $('#seventh-trad-meeting-day').val();
+                        const isManualEntry = $('#other-meeting-field').is(':visible');
+
+                        self.cachedFormData.meeting_day = meetingDay;
+                        self.cachedFormData.group_id = $('#seventh-trad-group-id').val();
+
+                        if (isManualEntry) {
+                            self.cachedFormData.meeting_name = $('#seventh-trad-other-meeting').val();
+                            self.cachedFormData.meeting_id = '';
+                        } else {
+                            const $selectedMeeting = $('#seventh-trad-meeting option:selected');
+                            self.cachedFormData.meeting_id = $('#seventh-trad-meeting').val();
+                            self.cachedFormData.meeting_name = $selectedMeeting.text();
+                        }
+
+                        // DEBUG: Show cached meeting_day
+                        console.log('CACHED meeting_day:', meetingDay, 'Type:', typeof meetingDay);
+                        alert('CACHED meeting_day = ' + meetingDay + ' (type: ' + typeof meetingDay + ')');
+                    }
 
 
                     // Build order object with item breakdown
