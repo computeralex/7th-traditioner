@@ -145,11 +145,14 @@ class Seventh_Trad_Email_Handler {
                                                                 <?php
                                                                 // Build group display: [Day abbrev.] [time] [name]
                                                                 $group_display = '';
-                                                                if (!empty($contribution->meeting_day)) {
+                                                                // Check if meeting_day is set (use isset because "0" is falsy but valid for Sunday)
+                                                                if (isset($contribution->meeting_day) && $contribution->meeting_day !== '' && $contribution->meeting_day !== null) {
                                                                     $day_name = seventh_trad_get_day_name($contribution->meeting_day);
                                                                     $group_display = substr($day_name, 0, 3) . ' '; // First 3 letters (Mon, Tue, etc.)
                                                                 }
-                                                                $group_display .= $contribution->group_name;
+                                                                // Remove the " - " dash from group name if present
+                                                                $group_name_clean = str_replace(' - ', ' ', $contribution->group_name);
+                                                                $group_display .= $group_name_clean;
                                                                 echo esc_html($group_display);
                                                                 ?>
                                                             </td>

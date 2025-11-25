@@ -554,7 +554,7 @@ class Seventh_Traditioner {
                 <th><?php esc_html_e('Contribution Type:', '7th-traditioner'); ?></th>
                 <td><?php echo esc_html($contribution->contribution_type === 'group' ? __('Group', '7th-traditioner') : __('Individual', '7th-traditioner')); ?></td>
             </tr>
-            <?php if ($contribution->contribution_type === 'group' && !empty($contribution->meeting_day)) : ?>
+            <?php if ($contribution->contribution_type === 'group' && isset($contribution->meeting_day) && $contribution->meeting_day !== '' && $contribution->meeting_day !== null) : ?>
             <tr>
                 <th><?php esc_html_e('Meeting Day:', '7th-traditioner'); ?></th>
                 <td><?php echo esc_html(seventh_trad_get_day_name($contribution->meeting_day)); ?> (<?php echo esc_html($contribution->meeting_day); ?>)</td>
