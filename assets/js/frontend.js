@@ -312,6 +312,10 @@
             const contributorType = $('#seventh-trad-contributor-type').val();
             const meetingDay = $('#seventh-trad-meeting-day').val();
 
+            console.log('7th Traditioner: saveContribution - contributorType:', contributorType);
+            console.log('7th Traditioner: saveContribution - meetingDay value:', meetingDay);
+            console.log('7th Traditioner: saveContribution - meetingDay element found:', $('#seventh-trad-meeting-day').length);
+
             const firstName = $('#seventh-trad-first-name').val();
             const lastName = $('#seventh-trad-last-name').val();
             const fullName = firstName + ' ' + lastName;
@@ -350,6 +354,8 @@
 
                 formData.group_id = $('#seventh-trad-group-id').val();
             }
+
+            console.log('7th Traditioner: Sending contribution data:', formData);
 
             $.ajax({
                 url: seventhTradData.ajax_url,
