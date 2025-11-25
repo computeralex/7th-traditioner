@@ -51,10 +51,6 @@ class Seventh_Trad_Contribution_Handler {
 
         // Validate group-specific fields if contributing on behalf of group
         if ($_POST['contributor_type'] === 'group') {
-            error_log('7th Traditioner: Group validation - meeting_day value: ' . print_r($_POST['meeting_day'], true));
-            error_log('7th Traditioner: Group validation - meeting_id value: ' . print_r($_POST['meeting_id'], true));
-            error_log('7th Traditioner: Group validation - meeting_name value: ' . print_r($_POST['meeting_name'], true));
-
             if (!isset($_POST['meeting_day']) || $_POST['meeting_day'] === '') {
                 wp_send_json_error(array(
                     'message' => __('Meeting day is required when contributing on behalf of a group.', '7th-traditioner')
@@ -69,11 +65,6 @@ class Seventh_Trad_Contribution_Handler {
 
         // Sanitize data
         $data = seventh_trad_sanitize_contribution_data($_POST);
-
-        // Debug log
-        error_log('7th Traditioner: Raw POST meeting_day - ' . print_r($_POST['meeting_day'] ?? 'NOT SET', true));
-        error_log('7th Traditioner: Sanitized meeting_day - ' . print_r($data['meeting_day'] ?? 'NOT SET', true));
-        error_log('7th Traditioner: Sanitized data - ' . json_encode($data));
 
         // Validate name
         if (empty($data['member_name']) || strlen(trim($data['member_name'])) < 2) {

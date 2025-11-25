@@ -307,12 +307,9 @@
 
             // Safety check - if cachedFormData doesn't exist, something went wrong
             if (!self.cachedFormData) {
-                console.error('ERROR: cachedFormData is missing!');
                 self.showError('Form data was lost. Please try again.');
                 return;
             }
-
-            console.log('DEBUG: Using cached form data:', self.cachedFormData);
 
             // Use cached form data that was captured during createOrder
             const formData = {
@@ -337,11 +334,7 @@
                 formData.meeting_id = self.cachedFormData.meeting_id || '';
                 formData.meeting_name = self.cachedFormData.meeting_name || '';
                 formData.group_id = self.cachedFormData.group_id || '';
-
-                console.log('DEBUG: Adding group fields - meeting_day:', formData.meeting_day);
             }
-
-            console.log('DEBUG: Final formData being sent to server:', formData);
 
             $.ajax({
                 url: seventhTradData.ajax_url,
@@ -655,10 +648,6 @@
                             self.cachedFormData.meeting_id = $('#seventh-trad-meeting').val();
                             self.cachedFormData.meeting_name = $selectedMeeting.text();
                         }
-
-                        // DEBUG: Show cached meeting_day
-                        console.log('CACHED meeting_day:', meetingDay, 'Type:', typeof meetingDay);
-                        alert('CACHED meeting_day = ' + meetingDay + ' (type: ' + typeof meetingDay + ')');
                     }
 
 
