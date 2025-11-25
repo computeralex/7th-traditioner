@@ -2,7 +2,8 @@
 
 A 7th Tradition contribution system for 12-step fellowships. Integrates with TSML (12 Step Meeting List) and PayPal for secure, PCI-compliant contributions.
 
-**Built by Alex M and Claude (Code)**
+**Author:** Alex M
+**Contributors:** Built with assistance from Claude Code
 
 ---
 
@@ -17,12 +18,12 @@ A 7th Tradition contribution system for 12-step fellowships. Integrates with TSM
 ✅ **Works with Any Fellowship** - AA, NA, RCA, and all 12-step programs
 ✅ **TSML Integration** - Automatically pulls groups from 12 Step Meeting List plugin
 ✅ **PayPal Payment Processing** - Secure, PCI-compliant payment handling
-✅ **Multi-Currency Support** - 24 currencies supported
+✅ **Multi-Currency Support** - 24 currencies supported with proper display
 ✅ **reCAPTCHA v3 Protection** - Prevents card testing attacks
-✅ **Automatic Receipts** - Beautiful HTML email receipts sent automatically
-✅ **Contribution Tracking** - View all contributions in the admin dashboard
+✅ **Automatic Receipts** - Beautiful HTML email receipts with meeting day and group info
+✅ **Contribution Tracking** - View all contributions with date, currency, and meeting details
 ✅ **Responsive Design** - Works beautifully on mobile and desktop
-✅ **Dark Mode Support** - Automatic dark mode for modern browsers
+✅ **Single-Currency Mode** - Automatically simplifies form when only one currency enabled
 
 ---
 
@@ -37,7 +38,7 @@ A 7th Tradition contribution system for 12-step fellowships. Integrates with TSM
 
 ## Installation
 
-1. Upload the `7th-tradition` folder to `/wp-content/plugins/`
+1. Upload the `7th-traditioner` folder to `/wp-content/plugins/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Ensure the **12 Step Meeting List (TSML)** plugin is installed and active
 4. Navigate to **7th Traditioner** in the WordPress admin menu
@@ -147,6 +148,9 @@ The plugin creates one custom table: `wp_seventh_trad_contributions`
 - `paypal_order_id` - PayPal order ID
 - `member_name` - Contributor name (optional)
 - `member_email` - Contributor email (for receipt)
+- `member_phone` - Contributor phone (optional)
+- `contribution_type` - "individual" or "group"
+- `meeting_day` - Day of week (0-6, where 0=Sunday)
 - `group_name` - Group name from TSML
 - `group_id` - Group ID from TSML
 - `amount` - Contribution amount
@@ -197,7 +201,8 @@ The plugin creates one custom table: `wp_seventh_trad_contributions`
 Receipts are automatically sent and include:
 
 - Contribution amount and currency
-- Group name
+- Group name with meeting day (e.g., "Sun 10:30 am Santa Cruz RCA")
+- Group ID (if provided)
 - Date and transaction ID
 - Optional custom notes
 - 7th Tradition statement
@@ -279,7 +284,6 @@ apply_filters('seventh_trad_currencies', $currencies);
 
 Future enhancements being considered:
 
-- [ ] Recurring contributions
 - [ ] Contribution reports and analytics
 - [ ] CSV export
 - [ ] Stripe integration option
@@ -305,17 +309,17 @@ For issues and questions:
 
 ## License
 
-GPL v2 or later
+GNU General Public License v2.0 or later
 
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+See LICENSE file for full details.
 
 ---
 
 ## Credits
 
-**Built by:**
-- Alex M
-- Claude (Code)
+**Author:** Alex M
+
+**Built with assistance from:** Claude Code
 
 **Integrates with:**
 - [12 Step Meeting List (TSML)](https://wordpress.org/plugins/12-step-meeting-list/)
