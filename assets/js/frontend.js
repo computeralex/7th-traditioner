@@ -796,7 +796,7 @@
             // Add phone number
             const phone = $('#seventh-trad-phone').val();
             if (phone && phone.trim()) {
-                parts.push('phone: ' + phone.trim());
+                parts.push('Phone: ' + phone.trim());
             }
 
             // Add group number if this is a group contribution
@@ -804,7 +804,7 @@
             if (contributorType === 'group') {
                 const groupId = $('#seventh-trad-group-id').val();
                 if (groupId && groupId.trim()) {
-                    parts.push(groupId.trim());
+                    parts.push('Group ID: ' + groupId.trim());
                 }
             }
 
