@@ -95,35 +95,8 @@
                 $('#seventh-trad-meeting').prop('required', true);
             });
 
-            // Currency change - update symbol and decimal places
-            $('#seventh-trad-currency').on('change', function() {
-                const $selected = $(this).find('option:selected');
-                const symbol = $selected.data('symbol');
-                const decimals = parseInt($selected.data('decimals'));
-                const position = $selected.data('position');
-                const currency = $(this).val();
-
-                // Update symbol display
-                $('#seventh-trad-currency-symbol').text(symbol);
-
-                // Update placeholder
-                const placeholder = decimals === 0 ? '0' : '0.00';
-                $('#seventh-trad-amount').attr('placeholder', placeholder);
-
-                // Store decimals for validation
-                $('#seventh-trad-amount').data('decimals', decimals);
-
-                // Clean existing amount value if switching to no-decimal currency
-                const $amountField = $('#seventh-trad-amount');
-                const currentValue = $amountField.val();
-                if (currentValue && decimals === 0) {
-                    // Remove decimals from existing value
-                    $amountField.val(currentValue.replace(/[^0-9]/g, ''));
-                }
-
-                // Update min/max for selected currency
-                self.updateMinMaxForCurrency(currency);
-            }).trigger('change'); // Trigger on page load
+            // Currency is now selected at the top before form loads
+            // No need for currency change handler
 
             // Validate and format amount field with proper decimal places
             $('#seventh-trad-amount').on('input', function() {
@@ -292,20 +265,20 @@
             const $amountField = $('#seventh-trad-amount');
             const minAmount = parseFloat($amountField.data('min-amount'));
             const maxAmount = parseFloat($amountField.data('max-amount'));
-            const currency = $amountField.data('currency') || $('#seventh-trad-currency').val();
+            const currency = this.selectedCurrency;
 
             console.log('7th Traditioner: Min/Max validation - Amount:', amount, 'Min:', minAmount, 'Max:', maxAmount);
 
             if (minAmount && !isNaN(minAmount) && amount < minAmount) {
-                const symbol = $('#seventh-trad-currency option:selected').data('symbol');
-                const decimals = parseInt($('#seventh-trad-currency option:selected').data('decimals')) || 2;
+                const symbol = $('#seventh-trad-currency-symbol').text();
+                const decimals = parseInt($amountField.data('decimals')) || 2;
                 this.showError('Minimum contribution: ' + symbol + minAmount.toFixed(decimals));
                 return false;
             }
 
             if (maxAmount && !isNaN(maxAmount) && amount > maxAmount) {
-                const symbol = $('#seventh-trad-currency option:selected').data('symbol');
-                const decimals = parseInt($('#seventh-trad-currency option:selected').data('decimals')) || 2;
+                const symbol = $('#seventh-trad-currency-symbol').text();
+                const decimals = parseInt($amountField.data('decimals')) || 2;
                 this.showError('Maximum contribution: ' + symbol + maxAmount.toFixed(decimals));
                 return false;
             }
@@ -354,7 +327,7 @@
                 phone: $('#seventh-trad-phone').val(),
                 contributor_type: contributorType,
                 amount: $('#seventh-trad-amount').val(),
-                currency: $('#seventh-trad-currency').val(),
+                currency: self.selectedCurrency,
                 paypal_status: orderData.status,
                 custom_notes: $('#seventh-trad-notes').val()
             };
@@ -495,43 +468,22 @@
         initCurrencySelector: function() {
             const self = this;
 
+            // Check if only one currency is enabled - auto-select it
+            const isSingleCurrency = $('.seventh-trad-container').data('single-currency') === 'true';
+            const autoCurrency = $('.seventh-trad-container').data('auto-currency');
+
+            if (isSingleCurrency && autoCurrency) {
+                console.log('7th Traditioner: Single currency mode - auto-selecting', autoCurrency);
+                self.selectCurrency(autoCurrency);
+                return;
+            }
+
             // Handle currency selection
             $('#seventh-trad-currency-choice').on('change', function() {
                 const currency = $(this).val();
-
-                if (!currency) {
-                    return;
+                if (currency) {
+                    self.selectCurrency(currency);
                 }
-
-                console.log('7th Traditioner: Currency selected:', currency);
-
-                // Store selected currency
-                self.selectedCurrency = currency;
-
-                // Get currency details
-                const $selected = $(this).find('option:selected');
-                const symbol = $selected.data('symbol');
-                const decimals = $selected.data('decimals');
-                const currencyName = $selected.text();
-
-                // Update currency display in form
-                $('#seventh-trad-currency-display-text').text(currencyName);
-
-                // Hide currency selector
-                $('#seventh-trad-currency-selector').hide();
-
-                // Show form
-                self.form.show();
-
-                // Load PayPal SDK with selected currency
-                self.loadPayPalSDK(currency);
-
-                // Update min/max for selected currency
-                self.updateMinMaxForCurrency(currency);
-
-                // Store currency info for amount field
-                $('#seventh-trad-amount').data('decimals', decimals);
-                $('#seventh-trad-currency-symbol').text(symbol);
             });
 
             // Handle "Start Over" button
@@ -539,6 +491,43 @@
                 // Reload the page to start fresh
                 window.location.reload();
             });
+        },
+
+        /**
+         * Select a currency and load the form
+         */
+        selectCurrency: function(currency) {
+            const self = this;
+
+            console.log('7th Traditioner: Currency selected:', currency);
+
+            // Store selected currency
+            self.selectedCurrency = currency;
+
+            // Get currency details from the dropdown or data attributes
+            const $option = $('#seventh-trad-currency-choice option[value="' + currency + '"]');
+            const symbol = $option.data('symbol');
+            const decimals = $option.data('decimals');
+            const currencyName = $option.text() || currency;
+
+            // Update currency display in form
+            $('#seventh-trad-currency-display-text').text(currencyName);
+
+            // Hide currency selector
+            $('#seventh-trad-currency-selector').hide();
+
+            // Show form
+            self.form.show();
+
+            // Load PayPal SDK with selected currency
+            self.loadPayPalSDK(currency);
+
+            // Update min/max for selected currency
+            self.updateMinMaxForCurrency(currency);
+
+            // Store currency info for amount field
+            $('#seventh-trad-amount').data('decimals', decimals);
+            $('#seventh-trad-currency-symbol').text(symbol);
         },
 
         /**
@@ -654,7 +643,7 @@
 
                     // Get form data
                     const amount = $('#seventh-trad-amount').val();
-                    const currency = $('#seventh-trad-currency').val();
+                    const currency = self.selectedCurrency;
                     const itemDetails = self.getItemDetails();
                     const email = $('#seventh-trad-email').val();
                     const firstName = $('#seventh-trad-first-name').val();
@@ -736,7 +725,7 @@
                     }
 
                     // Check if it's a currency issue
-                    const currency = $('#seventh-trad-currency').val();
+                    const currency = self.selectedCurrency;
                     if (currency !== 'USD') {
                         errorMessage += ' NOTE: Sandbox test cards may only work with USD. Try USD or test in live mode with real transactions.';
                     }
@@ -900,8 +889,8 @@
          */
         roundAmount: function(amount, currency, method, direction) {
             if (method === 'simple') {
-                // Get currency decimals
-                const decimals = parseInt($('#seventh-trad-currency option:selected').data('decimals')) || 2;
+                // Get currency decimals from amount field
+                const decimals = parseInt($('#seventh-trad-amount').data('decimals')) || 2;
                 return parseFloat(amount.toFixed(decimals));
             }
 

@@ -14,11 +14,14 @@ $all_currencies = seventh_trad_get_supported_currencies();
 $enabled_currency_codes = get_option('seventh_trad_enabled_currencies', array_keys($all_currencies));
 // Filter to only show enabled currencies
 $currencies = array_intersect_key($all_currencies, array_flip($enabled_currency_codes));
-$default_currency = get_option('seventh_trad_default_currency', 'USD');
 $fellowship_name = seventh_trad_get_fellowship_name();
+
+// Check if only one currency is enabled - if so, auto-select it
+$single_currency_mode = (count($currencies) === 1);
+$auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
 ?>
 
-<div class="seventh-trad-container">
+<div class="seventh-trad-container" data-single-currency="<?php echo $single_currency_mode ? 'true' : 'false'; ?>" data-auto-currency="<?php echo esc_attr($auto_currency); ?>">
     <div class="seventh-trad-form-wrapper">
         <?php if (!empty($atts['title'])) : ?>
             <h2 class="seventh-trad-title"><?php echo esc_html($atts['title']); ?></h2>
@@ -30,8 +33,8 @@ $fellowship_name = seventh_trad_get_fellowship_name();
             </div>
         <?php endif; ?>
 
-        <!-- Currency Selection (shown first, before form) -->
-        <div id="seventh-trad-currency-selector" class="seventh-trad-currency-selector">
+        <!-- Currency Selection (shown first, before form, unless only one currency) -->
+        <div id="seventh-trad-currency-selector" class="seventh-trad-currency-selector" style="<?php echo $single_currency_mode ? 'display: none;' : ''; ?>">
             <h3><?php esc_html_e('Select Your Currency', '7th-traditioner'); ?></h3>
 
             <div class="seventh-trad-field">
@@ -188,8 +191,7 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                     >
                         <option value=""><?php esc_html_e('-- Select Day First --', '7th-traditioner'); ?></option>
                     </select>
-                    <small class="seventh-trad-help">
-                        <?php esc_html_e('Don\'t see your meeting?', '7th-traditioner'); ?>
+                    <small class="seventh-trad-help seventh-trad-help-centered">
                         <a href="#" id="seventh-trad-add-other-meeting"><?php esc_html_e('Enter manually', '7th-traditioner'); ?></a>
                     </small>
                 </div>
@@ -207,9 +209,8 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                         class="seventh-trad-input"
                         placeholder="<?php esc_attr_e('Enter your meeting name', '7th-traditioner'); ?>"
                     />
-                    <small class="seventh-trad-help">
-                        <?php esc_html_e('Is your meeting listed?', '7th-traditioner'); ?>
-                        <a href="#" id="seventh-trad-select-from-list"><?php esc_html_e('Select from list instead', '7th-traditioner'); ?></a>
+                    <small class="seventh-trad-help seventh-trad-help-centered">
+                        <a href="#" id="seventh-trad-select-from-list"><?php esc_html_e('Select from list', '7th-traditioner'); ?></a>
                     </small>
                 </div>
 
@@ -229,9 +230,6 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                         min="0"
                         step="1"
                     />
-                    <small class="seventh-trad-help">
-                        <?php esc_html_e('Your group\'s unique identifier if different from the meeting selection', '7th-traditioner'); ?>
-                    </small>
                 </div>
                 <?php endif; ?>
             </div>
@@ -242,64 +240,33 @@ $fellowship_name = seventh_trad_get_fellowship_name();
                     <?php esc_html_e('Notes', '7th-traditioner'); ?>
                     <span class="optional"><?php esc_html_e('(Optional)', '7th-traditioner'); ?></span>
                 </label>
-                <textarea
+                <input
+                    type="text"
                     id="seventh-trad-notes"
                     name="notes"
-                    class="seventh-trad-textarea"
-                    rows="3"
-                    maxlength="127"
+                    class="seventh-trad-input"
+                    maxlength="100"
                     placeholder="<?php esc_attr_e('In memory of, gratitude, etc.', '7th-traditioner'); ?>"
-                ></textarea>
-                <small class="seventh-trad-help"><?php esc_html_e('Maximum 127 characters', '7th-traditioner'); ?></small>
+                />
             </div>
 
-            <!-- Currency and Amount Row -->
-            <div class="seventh-trad-field-row">
-                <div class="seventh-trad-field seventh-trad-field-60">
-                    <label for="seventh-trad-currency">
-                        <?php esc_html_e('Currency', '7th-traditioner'); ?>
-                        <span class="required">*</span>
-                    </label>
-                    <select
-                        id="seventh-trad-currency"
-                        name="currency"
-                        class="seventh-trad-select"
-                        data-decimals="2"
-                        data-symbol="$"
-                        data-position="before"
+            <!-- Amount Field -->
+            <div class="seventh-trad-field">
+                <label for="seventh-trad-amount">
+                    <?php esc_html_e('Amount', '7th-traditioner'); ?>
+                    <span class="required">*</span>
+                </label>
+                <div class="seventh-trad-amount-wrapper">
+                    <span id="seventh-trad-currency-symbol" class="seventh-trad-currency-prefix">$</span>
+                    <input
+                        type="text"
+                        id="seventh-trad-amount"
+                        name="amount"
+                        class="seventh-trad-input seventh-trad-amount-input"
+                        min="1"
                         required
-                    >
-                        <?php foreach ($currencies as $code => $currency_data) : ?>
-                            <option
-                                value="<?php echo esc_attr($code); ?>"
-                                data-symbol="<?php echo esc_attr($currency_data['symbol']); ?>"
-                                data-decimals="<?php echo esc_attr($currency_data['decimals']); ?>"
-                                data-position="<?php echo esc_attr($currency_data['position']); ?>"
-                                <?php selected($code, $default_currency); ?>
-                            >
-                                <?php echo esc_html($currency_data['name'] . ' (' . $code . ')'); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <div class="seventh-trad-field seventh-trad-field-40">
-                    <label for="seventh-trad-amount">
-                        <?php esc_html_e('Amount', '7th-traditioner'); ?>
-                        <span class="required">*</span>
-                    </label>
-                    <div class="seventh-trad-amount-wrapper">
-                        <span id="seventh-trad-currency-symbol" class="seventh-trad-currency-prefix">$</span>
-                        <input
-                            type="text"
-                            id="seventh-trad-amount"
-                            name="amount"
-                            class="seventh-trad-input seventh-trad-amount-input"
-                            min="1"
-                            required
-                            placeholder="0.00"
-                        />
-                    </div>
+                        placeholder="0.00"
+                    />
                 </div>
             </div>
             <!-- Hidden fields -->

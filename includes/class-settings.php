@@ -155,7 +155,6 @@ class Seventh_Trad_Settings {
                             <thead>
                                 <tr>
                                     <th style="width: 60px; padding: 8px;"><?php esc_html_e('Enable', '7th-traditioner'); ?></th>
-                                    <th style="width: 80px; padding: 8px;"><?php esc_html_e('Default', '7th-traditioner'); ?></th>
                                     <th style="padding: 8px;"><?php esc_html_e('Currency', '7th-traditioner'); ?></th>
                                 </tr>
                             </thead>
@@ -164,9 +163,6 @@ class Seventh_Trad_Settings {
                                     <tr>
                                         <td style="text-align: center; padding: 4px 8px;">
                                             <input type="checkbox" name="enabled_currencies[]" value="<?php echo esc_attr($code); ?>" <?php checked(in_array($code, $enabled_currencies)); ?> class="currency-checkbox" id="currency_<?php echo esc_attr($code); ?>" />
-                                        </td>
-                                        <td style="text-align: center; padding: 4px 8px;">
-                                            <input type="radio" name="default_currency" value="<?php echo esc_attr($code); ?>" <?php checked($default_currency, $code); ?> class="currency-default-radio" />
                                         </td>
                                         <td style="padding: 4px 8px;">
                                             <label for="currency_<?php echo esc_attr($code); ?>" style="margin: 0; font-weight: normal;">
@@ -179,7 +175,7 @@ class Seventh_Trad_Settings {
                         </table>
                     </div>
                     <p class="description">
-                        <?php esc_html_e('Enable currencies to make them available on the contribution form. Set one as default to pre-select it.', '7th-traditioner'); ?>
+                        <?php esc_html_e('Enable currencies to make them available on the contribution form.', '7th-traditioner'); ?>
                     </p>
                 </td>
             </tr>
@@ -281,17 +277,6 @@ class Seventh_Trad_Settings {
             });
 
             // Warn if trying to disable the default currency
-            $('.currency-checkbox').on('change', function() {
-                var currencyCode = $(this).val();
-                var isChecked = $(this).is(':checked');
-                var isDefault = $('input[name="default_currency"]:checked').val() === currencyCode;
-
-                if (!isChecked && isDefault) {
-                    if (!confirm('<?php esc_html_e('This is the default currency. Are you sure you want to disable it? You should select a different default currency first.', '7th-traditioner'); ?>')) {
-                        $(this).prop('checked', true);
-                    }
-                }
-            });
         });
         </script>
         <?php
@@ -678,18 +663,6 @@ class Seventh_Trad_Settings {
             // If no currencies selected, enable all
             $currencies = seventh_trad_get_supported_currencies();
             $enabled_currencies = array_keys($currencies);
-        }
-
-        // Save default currency and ensure it's enabled
-        if (isset($_POST['default_currency'])) {
-            $default_currency = sanitize_text_field($_POST['default_currency']);
-
-            // Ensure default currency is in the enabled list
-            if (!in_array($default_currency, $enabled_currencies)) {
-                $enabled_currencies[] = $default_currency;
-            }
-
-            update_option('seventh_trad_default_currency', $default_currency);
         }
 
         update_option('seventh_trad_enabled_currencies', $enabled_currencies);
