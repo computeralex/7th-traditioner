@@ -1,7 +1,6 @@
 === 7th Traditioner ===
 Contributors: computeralex
 Tags: donations, paypal, 12-step, aa, na, contributions, subscriptions, fundraising
-Donate link: https://github.com/computeralex/7th-traditioner
 Requires at least: 5.8
 Tested up to: 6.7
 Stable tag: 1.0.2
