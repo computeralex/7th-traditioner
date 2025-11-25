@@ -285,6 +285,24 @@
                 return false;
             }
 
+            // Validate min/max amounts
+            const $amountField = $('#seventh-trad-amount');
+            const minAmount = parseFloat($amountField.data('min-amount'));
+            const maxAmount = parseFloat($amountField.data('max-amount'));
+            const currency = $amountField.data('currency') || $('#seventh-trad-currency').val();
+
+            if (minAmount && amount < minAmount) {
+                const symbol = $('#seventh-trad-currency option:selected').data('symbol');
+                this.showError('Minimum contribution: ' + symbol + minAmount.toFixed(2));
+                return false;
+            }
+
+            if (maxAmount && amount > maxAmount) {
+                const symbol = $('#seventh-trad-currency option:selected').data('symbol');
+                this.showError('Maximum contribution: ' + symbol + maxAmount.toFixed(2));
+                return false;
+            }
+
             return true;
         },
 
