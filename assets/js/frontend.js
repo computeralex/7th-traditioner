@@ -28,9 +28,7 @@
             this.initReCaptcha();
             this.bindEvents();
 
-            // Load PayPal SDK with initial currency
-            const initialCurrency = $('#seventh-trad-currency').val() || 'USD';
-            this.loadPayPalSDK(initialCurrency);
+            // PayPal SDK will be loaded by currency change trigger in bindEvents()
         },
 
         /**
