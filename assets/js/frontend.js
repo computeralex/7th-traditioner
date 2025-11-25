@@ -291,15 +291,19 @@
             const maxAmount = parseFloat($amountField.data('max-amount'));
             const currency = $amountField.data('currency') || $('#seventh-trad-currency').val();
 
-            if (minAmount && amount < minAmount) {
+            console.log('7th Traditioner: Min/Max validation - Amount:', amount, 'Min:', minAmount, 'Max:', maxAmount);
+
+            if (minAmount && !isNaN(minAmount) && amount < minAmount) {
                 const symbol = $('#seventh-trad-currency option:selected').data('symbol');
-                this.showError('Minimum contribution: ' + symbol + minAmount.toFixed(2));
+                const decimals = parseInt($('#seventh-trad-currency option:selected').data('decimals')) || 2;
+                this.showError('Minimum contribution: ' + symbol + minAmount.toFixed(decimals));
                 return false;
             }
 
-            if (maxAmount && amount > maxAmount) {
+            if (maxAmount && !isNaN(maxAmount) && amount > maxAmount) {
                 const symbol = $('#seventh-trad-currency option:selected').data('symbol');
-                this.showError('Maximum contribution: ' + symbol + maxAmount.toFixed(2));
+                const decimals = parseInt($('#seventh-trad-currency option:selected').data('decimals')) || 2;
+                this.showError('Maximum contribution: ' + symbol + maxAmount.toFixed(decimals));
                 return false;
             }
 
