@@ -17,23 +17,6 @@ class Seventh_Trad_Contribution_Handler {
      * Save contribution via AJAX
      */
     public static function save_contribution() {
-        // Rate limiting: Block rapid successive contribution attempts from same IP
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-        if (!empty($ip)) {
-            $transient_key = 'seventh_trad_contrib_' . md5($ip);
-            $recent_attempts = get_transient($transient_key);
-
-            if ($recent_attempts && $recent_attempts >= 5) {
-                wp_send_json_error(array(
-                    'message' => __('Too many contribution attempts. Please wait 15 minutes before trying again.', '7th-traditioner')
-                ));
-            }
-
-            // Increment counter (15 minute window)
-            $count = $recent_attempts ? $recent_attempts + 1 : 1;
-            set_transient($transient_key, $count, 15 * MINUTE_IN_SECONDS);
-        }
-
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_nonce')) {
             wp_send_json_error(array(
