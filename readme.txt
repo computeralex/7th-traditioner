@@ -3,7 +3,7 @@ Contributors: computeralex
 Tags: donations, paypal, 12-step, aa, na, contributions, subscriptions, fundraising
 Requires at least: 5.8
 Tested up to: 6.7
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 Requires PHP: 7.4
 Requires Plugins: 12-step-meeting-list
 License: GPLv2 or later
@@ -109,6 +109,14 @@ For issues and questions, please visit the [GitHub repository](https://github.co
 
 == Changelog ==
 
+= 1.0.3 =
+* Security: Add reCAPTCHA gate verification on currency selection
+* Security: Prevent card testing attacks before form loads
+* Fix: Move reCAPTCHA verification to before payment (prevents blocking after PayPal capture)
+* Add: Loading spinner during reCAPTCHA verification
+* Add: "Try Again" button if reCAPTCHA verification fails
+* Improve: Better fraud prevention workflow
+
 = 1.0.2 =
 * Fix: Meeting day display for Sunday (PHP empty('0') bug)
 * Fix: Cache form data to ensure reliable capture before PayPal popup
@@ -131,6 +139,9 @@ For issues and questions, please visit the [GitHub repository](https://github.co
 * TSML integration
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+Important security improvement: reCAPTCHA verification now happens before payment form loads, preventing card testing attacks and fixing issue where verification blocked contributions after PayPal already captured payment.
 
 = 1.0.2 =
 Critical bug fixes for Sunday contributions and single-currency mode. Admin improvements and better currency handling. Recommended update for all users.
