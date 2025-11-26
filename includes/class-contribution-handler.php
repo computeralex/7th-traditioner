@@ -24,14 +24,14 @@ class Seventh_Trad_Contribution_Handler {
             ));
         }
 
-        // Verify reCAPTCHA
+        // Verify reCAPTCHA (log suspicious activity but don't block - payment already captured)
         if (get_option('seventh_trad_recaptcha_site_key')) {
             $recaptcha_token = isset($_POST['recaptcha_token']) ? sanitize_text_field($_POST['recaptcha_token']) : '';
 
             if (!seventh_trad_verify_recaptcha($recaptcha_token)) {
-                wp_send_json_error(array(
-                    'message' => __('Security verification failed. Please try again.', '7th-traditioner')
-                ));
+                // Log failed verification but don't block the contribution
+                // PayPal has already captured payment, so we must record it
+                error_log('7th Traditioner: reCAPTCHA verification failed for transaction ' . sanitize_text_field($_POST['transaction_id'] ?? 'unknown'));
             }
         }
 
