@@ -451,6 +451,12 @@
                 window.location.reload();
             });
 
+            // Handle "Try Again" button for reCAPTCHA verification failure
+            $('#seventh-trad-recaptcha-retry').on('click', function() {
+                // Reload the page to start fresh
+                window.location.reload();
+            });
+
             // Check if only one currency is enabled - auto-select it
             const isSingleCurrency = $('.seventh-trad-container').data('single-currency') === true;
             const autoCurrency = $('.seventh-trad-container').data('auto-currency');
@@ -500,8 +506,84 @@
             // Update currency display in form
             $('#seventh-trad-currency-display-text').text(currencyName);
 
+            // Verify reCAPTCHA before showing form
+            self.verifyRecaptchaGate(currency, symbol, decimals, currencyName);
+        },
+
+        /**
+         * Verify reCAPTCHA gate before showing form
+         */
+        verifyRecaptchaGate: function(currency, symbol, decimals, currencyName) {
+            const self = this;
+
+            // If reCAPTCHA is not configured, skip verification
+            if (!seventhTradData.recaptcha_site_key) {
+                self.showFormAfterVerification(currency, symbol, decimals, currencyName);
+                return;
+            }
+
             // Hide currency selector
             $('#seventh-trad-currency-selector').hide();
+
+            // Show loading spinner
+            $('#seventh-trad-recaptcha-loading').show();
+
+            // Get reCAPTCHA token
+            self.getReCaptchaToken().then(function(token) {
+                // Send token to server for verification
+                $.ajax({
+                    url: seventhTradData.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'seventh_trad_verify_recaptcha_gate',
+                        nonce: seventhTradData.nonce,
+                        recaptcha_token: token
+                    },
+                    success: function(response) {
+                        // Hide loading
+                        $('#seventh-trad-recaptcha-loading').hide();
+
+                        if (response.success) {
+                            // Verification passed - show form
+                            self.showFormAfterVerification(currency, symbol, decimals, currencyName);
+                        } else {
+                            // Verification failed - show error
+                            $('#seventh-trad-recaptcha-error').show();
+                            $('#seventh-trad-recaptcha-error-message').text(
+                                response.data.message || 'Verification failed. Please try again.'
+                            );
+                        }
+                    },
+                    error: function() {
+                        // Hide loading
+                        $('#seventh-trad-recaptcha-loading').hide();
+
+                        // Show error
+                        $('#seventh-trad-recaptcha-error').show();
+                        $('#seventh-trad-recaptcha-error-message').text(
+                            'Network error. Please try again.'
+                        );
+                    }
+                });
+            }).catch(function(err) {
+                console.error('reCAPTCHA error:', err);
+
+                // Hide loading
+                $('#seventh-trad-recaptcha-loading').hide();
+
+                // Show error
+                $('#seventh-trad-recaptcha-error').show();
+                $('#seventh-trad-recaptcha-error-message').text(
+                    'reCAPTCHA error. Please try again.'
+                );
+            });
+        },
+
+        /**
+         * Show form after reCAPTCHA verification passes
+         */
+        showFormAfterVerification: function(currency, symbol, decimals, currencyName) {
+            const self = this;
 
             // Show form
             self.form.show();
@@ -597,17 +679,8 @@
                         return actions.reject();
                     }
 
-
-                    // Get reCAPTCHA token ONCE before payment (cache for later use after payment)
-                    return self.getReCaptchaToken().then(function(token) {
-                        self.cachedRecaptchaToken = token || '';
-                        return actions.resolve();
-                    }).catch(function(err) {
-                        console.error('reCAPTCHA error:', err);
-                        // Allow payment to proceed even if reCAPTCHA fails (token will be empty)
-                        self.cachedRecaptchaToken = '';
-                        return actions.resolve();
-                    });
+                    // reCAPTCHA verification already done at currency selection gate
+                    return actions.resolve();
                 },
                 createOrder: function(data, actions) {
 
@@ -700,8 +773,8 @@
                     // Capture the order
                     return actions.order.capture().then(function(details) {
 
-                        // Save contribution to database using cached reCAPTCHA token from onClick
-                        self.saveContribution(details, self.cachedRecaptchaToken);
+                        // Save contribution to database (reCAPTCHA already verified at gate)
+                        self.saveContribution(details, null);
                     });
                 },
                 onCancel: function(data) {

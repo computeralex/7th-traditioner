@@ -102,6 +102,9 @@ class Seventh_Traditioner {
         add_action('wp_ajax_seventh_trad_get_exchange_rate', array('Seventh_Trad_Exchange_Rates', 'ajax_get_rate'));
         add_action('wp_ajax_nopriv_seventh_trad_get_exchange_rate', array('Seventh_Trad_Exchange_Rates', 'ajax_get_rate'));
 
+        add_action('wp_ajax_seventh_trad_verify_recaptcha_gate', array($this, 'ajax_verify_recaptcha_gate'));
+        add_action('wp_ajax_nopriv_seventh_trad_verify_recaptcha_gate', array($this, 'ajax_verify_recaptcha_gate'));
+
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
 
@@ -497,6 +500,36 @@ class Seventh_Traditioner {
         } else {
             wp_send_json_error(array(
                 'message' => __('Failed to send test email. Please check your email server configuration.', '7th-traditioner')
+            ));
+        }
+    }
+
+    /**
+     * AJAX handler for reCAPTCHA gate verification
+     */
+    public function ajax_verify_recaptcha_gate() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed', '7th-traditioner')
+            ));
+        }
+
+        // Get reCAPTCHA token
+        $recaptcha_token = isset($_POST['recaptcha_token']) ? sanitize_text_field($_POST['recaptcha_token']) : '';
+
+        // Verify with Google
+        if (seventh_trad_verify_recaptcha($recaptcha_token)) {
+            wp_send_json_success(array(
+                'message' => __('Verification passed', '7th-traditioner')
+            ));
+        } else {
+            $fellowship_name = seventh_trad_get_fellowship_name();
+            wp_send_json_error(array(
+                'message' => sprintf(
+                    __('reCAPTCHA verification failed. Please try again later or contact %s', '7th-traditioner'),
+                    $fellowship_name
+                )
             ));
         }
     }

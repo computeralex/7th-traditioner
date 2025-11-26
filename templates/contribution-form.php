@@ -62,6 +62,22 @@ $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
             </div>
         </div>
 
+        <!-- reCAPTCHA verification loading -->
+        <div id="seventh-trad-recaptcha-loading" class="seventh-trad-loading" style="display: none;">
+            <div class="seventh-trad-spinner"></div>
+            <p><?php esc_html_e('Verifying...', '7th-traditioner'); ?></p>
+        </div>
+
+        <!-- reCAPTCHA verification error -->
+        <div id="seventh-trad-recaptcha-error" class="seventh-trad-recaptcha-error" style="display: none;">
+            <div class="seventh-trad-error-content">
+                <p id="seventh-trad-recaptcha-error-message"></p>
+                <button type="button" id="seventh-trad-recaptcha-retry" class="seventh-trad-button">
+                    <?php esc_html_e('Try Again', '7th-traditioner'); ?>
+                </button>
+            </div>
+        </div>
+
         <form id="seventh-trad-form" class="seventh-trad-form" style="display: none;">
             <!-- Currency locked in at top -->
             <div class="seventh-trad-currency-locked">
