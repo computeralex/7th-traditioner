@@ -151,7 +151,22 @@ class Seventh_Traditioner {
     public function enqueue_frontend_assets() {
         // Only load on pages with our shortcode
         global $post;
-        if (!is_a($post, 'WP_Post') || !has_shortcode($post->post_content, 'seventh_traditioner')) {
+        if (!is_a($post, 'WP_Post')) {
+            return;
+        }
+
+        // Check if shortcode exists in post content or Elementor data
+        $has_shortcode = has_shortcode($post->post_content, 'seventh_traditioner');
+
+        // Also check Elementor meta data (for Elementor-built pages)
+        if (!$has_shortcode && class_exists('\Elementor\Plugin')) {
+            $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+            if (!empty($elementor_data) && is_string($elementor_data)) {
+                $has_shortcode = strpos($elementor_data, 'seventh_traditioner') !== false;
+            }
+        }
+
+        if (!$has_shortcode) {
             return;
         }
 
