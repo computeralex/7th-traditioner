@@ -149,24 +149,12 @@ class Seventh_Traditioner {
      * Enqueue frontend assets
      */
     public function enqueue_frontend_assets() {
-        // Only load on pages with our shortcode
-        global $post;
-        if (!is_a($post, 'WP_Post')) {
-            return;
-        }
+        // Load assets on all frontend pages
+        // Note: We used to check for shortcode presence, but this fails with
+        // Elementor and other page builders that process content after wp_enqueue_scripts
+        // The CSS/JS files are small enough that loading them site-wide is acceptable
 
-        // Check if shortcode exists in post content or Elementor data
-        $has_shortcode = has_shortcode($post->post_content, 'seventh_traditioner');
-
-        // Also check Elementor meta data (for Elementor-built pages)
-        if (!$has_shortcode && class_exists('\Elementor\Plugin')) {
-            $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
-            if (!empty($elementor_data) && is_string($elementor_data)) {
-                $has_shortcode = strpos($elementor_data, 'seventh_traditioner') !== false;
-            }
-        }
-
-        if (!$has_shortcode) {
+        if (is_admin()) {
             return;
         }
 
