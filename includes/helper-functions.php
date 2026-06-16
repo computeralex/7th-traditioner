@@ -10,6 +10,50 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Get admin-enabled currencies for the contribution form
+ *
+ * @return array Array of currency code => currency data
+ */
+function seventh_trad_get_enabled_currencies() {
+    $all_currencies = seventh_trad_get_supported_currencies();
+    $enabled_codes = get_option('seventh_trad_enabled_currencies', array_keys($all_currencies));
+
+    if (!is_array($enabled_codes)) {
+        $enabled_codes = array_keys($all_currencies);
+    }
+
+    return array_intersect_key($all_currencies, array_flip($enabled_codes));
+}
+
+/**
+ * Whether only one currency is enabled (simplified form UX)
+ *
+ * @return bool
+ */
+function seventh_trad_is_single_currency_mode() {
+    return count(seventh_trad_get_enabled_currencies()) === 1;
+}
+
+/**
+ * Whether monthly recurring contributions are enabled
+ *
+ * @return bool
+ */
+function seventh_trad_recurring_enabled() {
+    return get_option('seventh_trad_recurring_enabled', '0') === '1'
+        && Seventh_Trad_PayPal_Handler::has_server_credentials();
+}
+
+/**
+ * PayPal webhook REST URL for the current site
+ *
+ * @return string
+ */
+function seventh_trad_get_webhook_url() {
+    return rest_url('seventh-traditioner/v1/paypal-webhook');
+}
+
+/**
  * Get supported currencies with detailed formatting info
  *
  * @return array Array of currency data
@@ -319,6 +363,76 @@ function seventh_trad_format_amount($amount, $currency) {
 }
 
 /**
+ * Whether the reCAPTCHA gate is active (site key configured).
+ *
+ * @return bool
+ */
+function seventh_trad_recaptcha_gate_enabled() {
+    return !empty(get_option('seventh_trad_recaptcha_site_key'));
+}
+
+/**
+ * Get the PayPal client ID for the active mode.
+ *
+ * @return string
+ */
+function seventh_trad_get_paypal_client_id() {
+    $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
+
+    return ($paypal_mode === 'live')
+        ? (string) get_option('seventh_trad_paypal_live_client_id')
+        : (string) get_option('seventh_trad_paypal_sandbox_client_id');
+}
+
+/**
+ * Issue a short-lived gate token after reCAPTCHA passes.
+ * Required for payment endpoints so bots cannot skip server verification.
+ *
+ * @return string
+ */
+function seventh_trad_issue_gate_token() {
+    $token = wp_generate_password(32, false, false);
+    $key = 'seventh_trad_gate_' . hash('sha256', $token);
+
+    set_transient($key, array(
+        'issued' => time(),
+    ), 15 * MINUTE_IN_SECONDS);
+
+    return $token;
+}
+
+/**
+ * Validate a gate token from a payment-related request.
+ *
+ * @param string $token Gate token
+ * @return bool
+ */
+function seventh_trad_verify_gate_token($token) {
+    if (empty($token)) {
+        return false;
+    }
+
+    $key = 'seventh_trad_gate_' . hash('sha256', $token);
+
+    return (bool) get_transient($key);
+}
+
+/**
+ * Validate gate token on the current POST request when reCAPTCHA is enabled.
+ *
+ * @return bool
+ */
+function seventh_trad_validate_gate_token_request() {
+    if (!seventh_trad_recaptcha_gate_enabled()) {
+        return true;
+    }
+
+    $token = isset($_POST['gate_token']) ? sanitize_text_field(wp_unslash($_POST['gate_token'])) : '';
+
+    return seventh_trad_verify_gate_token($token);
+}
+
+/**
  * Verify reCAPTCHA token
  *
  * @param string $token reCAPTCHA token
@@ -327,15 +441,28 @@ function seventh_trad_format_amount($amount, $currency) {
 function seventh_trad_verify_recaptcha($token) {
     $secret_key = get_option('seventh_trad_recaptcha_secret_key');
 
-    if (empty($secret_key) || empty($token)) {
+    if (empty($secret_key)) {
+        error_log('7th Traditioner: reCAPTCHA secret key is not configured');
         return false;
     }
 
+    if (empty($token)) {
+        error_log('7th Traditioner: reCAPTCHA token missing (Google script may not have loaded)');
+        return false;
+    }
+
+    $body = array(
+        'secret' => $secret_key,
+        'response' => $token,
+    );
+
+    $remote_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+    if (!empty($remote_ip)) {
+        $body['remoteip'] = $remote_ip;
+    }
+
     $response = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', array(
-        'body' => array(
-            'secret' => $secret_key,
-            'response' => $token,
-        )
+        'body' => $body,
     ));
 
     if (is_wp_error($response)) {
@@ -350,6 +477,8 @@ function seventh_trad_verify_recaptcha($token) {
         if (isset($response_body['score']) && $response_body['score'] >= 0.5) {
             return true;
         }
+        error_log('7th Traditioner: reCAPTCHA score too low - ' . json_encode($response_body));
+        return false;
     }
 
     error_log('7th Traditioner: reCAPTCHA verification failed - ' . json_encode($response_body));
@@ -412,6 +541,11 @@ function seventh_trad_sanitize_contribution_data($data) {
         'amount' => floatval($data['amount'] ?? 0),
         'currency' => sanitize_text_field($data['currency'] ?? 'USD'),
         'paypal_status' => sanitize_text_field($data['paypal_status'] ?? ''),
+        'is_recurring' => !empty($data['is_recurring']) ? 1 : 0,
+        'is_renewal' => !empty($data['is_renewal']) ? 1 : 0,
+        'subscription_id' => sanitize_text_field($data['subscription_id'] ?? ''),
+        'subscription_status' => sanitize_text_field($data['subscription_status'] ?? ''),
+        'plan_id' => sanitize_text_field($data['plan_id'] ?? ''),
         'custom_notes' => sanitize_textarea_field($data['custom_notes'] ?? ''),
     );
 }

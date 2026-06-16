@@ -2,8 +2,8 @@
 /**
  * Plugin Name: 7th Traditioner
  * Plugin URI: https://github.com/computeralex/7th-traditioner
- * Description: A 7th Tradition contribution system for 12-step fellowships. Integrates with TSML (12 Step Meeting List) and PayPal for secure, PCI-compliant contributions.
- * Version: 1.0.3
+ * Description: Voluntary member contributions for 12-step fellowships (7th Tradition). Integrates with TSML and PayPal.
+ * Version: 1.1.17
  * Author: Alex M
  * Author URI: https://github.com/computeralex/7th-traditioner
  * License: GPL v2 or later
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SEVENTH_TRAD_VERSION', '1.0.3');
+define('SEVENTH_TRAD_VERSION', '1.1.17');
 define('SEVENTH_TRAD_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SEVENTH_TRAD_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('SEVENTH_TRAD_PLUGIN_FILE', __FILE__);
@@ -62,6 +62,8 @@ class Seventh_Traditioner {
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-database.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-contribution-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-paypal-handler.php';
+        require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-paypal-subscriptions.php';
+        require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-paypal-webhook.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-email-handler.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-exchange-rates.php';
         require_once SEVENTH_TRAD_PLUGIN_DIR . 'includes/class-settings.php';
@@ -80,6 +82,8 @@ class Seventh_Traditioner {
 
         // Init hook
         add_action('init', array($this, 'init'));
+        add_action('plugins_loaded', array('Seventh_Trad_Database', 'run_migrations'));
+        add_action('rest_api_init', array('Seventh_Trad_PayPal_Webhook', 'register_routes'));
 
         // Enqueue assets
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
@@ -105,11 +109,18 @@ class Seventh_Traditioner {
         add_action('wp_ajax_seventh_trad_verify_recaptcha_gate', array($this, 'ajax_verify_recaptcha_gate'));
         add_action('wp_ajax_nopriv_seventh_trad_verify_recaptcha_gate', array($this, 'ajax_verify_recaptcha_gate'));
 
+        add_action('wp_ajax_seventh_trad_create_subscription_plan', array($this, 'ajax_create_subscription_plan'));
+        add_action('wp_ajax_nopriv_seventh_trad_create_subscription_plan', array($this, 'ajax_create_subscription_plan'));
+
+        add_action('wp_ajax_seventh_trad_save_subscription', array('Seventh_Trad_Contribution_Handler', 'save_subscription'));
+        add_action('wp_ajax_nopriv_seventh_trad_save_subscription', array('Seventh_Trad_Contribution_Handler', 'save_subscription'));
+
         // Shortcodes
         add_action('init', array('Seventh_Trad_Shortcodes', 'register_shortcodes'));
 
         // Admin menu
         add_action('admin_menu', array('Seventh_Trad_Settings', 'add_admin_menu'));
+        add_action('admin_init', array('Seventh_Trad_Contributions', 'maybe_export_csv'));
     }
 
     /**
@@ -176,10 +187,7 @@ class Seventh_Traditioner {
         );
 
         // PayPal SDK (client-side only, NO SECRETS NEEDED)
-        $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
-        $paypal_client_id = ($paypal_mode === 'live')
-            ? get_option('seventh_trad_paypal_live_client_id')
-            : get_option('seventh_trad_paypal_sandbox_client_id');
+        $paypal_client_id = seventh_trad_get_paypal_client_id();
 
         // NOTE: PayPal SDK will be loaded dynamically by JavaScript AFTER user selects currency
         // This ensures the SDK is loaded with the correct currency parameter
@@ -189,30 +197,52 @@ class Seventh_Traditioner {
         $recaptcha_site_key = get_option('seventh_trad_recaptcha_site_key');
         if ($recaptcha_site_key) {
             wp_enqueue_script(
-                'google-recaptcha',
+                'seventh-trad-recaptcha',
                 'https://www.google.com/recaptcha/api.js?render=' . esc_attr($recaptcha_site_key),
                 array(),
-                null,
+                SEVENTH_TRAD_VERSION,
                 true
             );
         }
+
+        // Single-currency mode (pass via localize — jQuery .data() is unreliable for data-* attrs)
+        $enabled_currencies = seventh_trad_get_enabled_currencies();
+        $single_currency_mode = seventh_trad_is_single_currency_mode();
+        $auto_currency = $single_currency_mode ? array_key_first($enabled_currencies) : null;
+        $auto_currency_details = ($auto_currency && isset($enabled_currencies[$auto_currency]))
+            ? $enabled_currencies[$auto_currency]
+            : null;
 
         // Localize script with data
         wp_localize_script('seventh-trad-frontend', 'seventhTradData', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('seventh_trad_nonce'),
             'recaptcha_site_key' => $recaptcha_site_key,
-            'paypal_client_id' => $paypal_client_id,
+            // With reCAPTCHA enabled, client ID is issued only after the server gate passes.
+            'paypal_client_id' => $recaptcha_site_key ? '' : $paypal_client_id,
             'paypal_mode' => get_option('seventh_trad_paypal_mode', 'sandbox'),
+            'singleCurrencyMode' => $single_currency_mode,
+            'autoCurrency' => $auto_currency,
+            'currencySymbol' => $auto_currency_details ? $auto_currency_details['symbol'] : '',
+            'currencyDecimals' => $auto_currency_details ? $auto_currency_details['decimals'] : 2,
+            'currencyName' => ($auto_currency_details && $auto_currency)
+                ? $auto_currency_details['name'] . ' (' . $auto_currency . ') ' . $auto_currency_details['symbol']
+                : '',
             'minAmount' => get_option('seventh_trad_min_contribution_amount', ''),
             'maxAmount' => get_option('seventh_trad_max_contribution_amount', ''),
             'roundingMethod' => get_option('seventh_trad_amount_rounding_method', 'smart'),
+            'recurringEnabled' => seventh_trad_recurring_enabled(),
             'strings' => array(
+                'monthly_setup' => __('Setting up monthly contribution...', '7th-traditioner'),
+                'monthly_success' => __('Thank you! Your monthly contribution is set up. A receipt has been sent to your email.', '7th-traditioner'),
                 'processing' => __('Processing contribution...', '7th-traditioner'),
                 'success' => __('Thank you for your contribution!', '7th-traditioner'),
                 'error' => __('There was an error processing your contribution. Please try again.', '7th-traditioner'),
                 'select_group' => __('Please select a group', '7th-traditioner'),
                 'enter_amount' => __('Please enter a contribution amount', '7th-traditioner'),
+                'select_contributor_for_payment' => __('Select how you are contributing above to continue to payment.', '7th-traditioner'),
+                'contribution_type_onetime' => __('One-time contribution (PayPal or card)', '7th-traditioner'),
+                'contribution_type_monthly' => __('Recurring contribution (PayPal account)', '7th-traditioner'),
             )
         ));
     }
@@ -291,6 +321,12 @@ class Seventh_Traditioner {
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed'));
+        }
+
+        if (!seventh_trad_validate_gate_token_request()) {
+            wp_send_json_error(array(
+                'message' => __('Security verification expired. Please refresh and try again.', '7th-traditioner'),
+            ));
         }
 
         // Validate required fields
@@ -508,6 +544,46 @@ class Seventh_Traditioner {
     }
 
     /**
+     * AJAX handler for creating a monthly subscription plan
+     */
+    public function ajax_create_subscription_plan() {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'seventh_trad_nonce')) {
+            wp_send_json_error(array('message' => __('Security check failed', '7th-traditioner')));
+        }
+
+        if (!seventh_trad_validate_gate_token_request()) {
+            wp_send_json_error(array(
+                'message' => __('Security verification expired. Please refresh and try again.', '7th-traditioner'),
+            ));
+        }
+
+        if (!seventh_trad_recurring_enabled()) {
+            wp_send_json_error(array('message' => __('Monthly contributions are not enabled.', '7th-traditioner')));
+        }
+
+        if (empty($_POST['amount']) || empty($_POST['currency'])) {
+            wp_send_json_error(array('message' => __('Amount and currency are required', '7th-traditioner')));
+        }
+
+        $amount = floatval($_POST['amount']);
+        $currency = sanitize_text_field($_POST['currency']);
+
+        if ($amount <= 0) {
+            wp_send_json_error(array('message' => __('Invalid amount', '7th-traditioner')));
+        }
+
+        $result = Seventh_Trad_PayPal_Subscriptions::create_monthly_plan($amount, $currency);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(array('message' => $result->get_error_message()));
+        }
+
+        wp_send_json_success(array(
+            'plan_id' => $result['plan_id'],
+        ));
+    }
+
+    /**
      * AJAX handler for reCAPTCHA gate verification
      */
     public function ajax_verify_recaptcha_gate() {
@@ -521,10 +597,20 @@ class Seventh_Traditioner {
         // Get reCAPTCHA token
         $recaptcha_token = isset($_POST['recaptcha_token']) ? sanitize_text_field($_POST['recaptcha_token']) : '';
 
-        // Verify with Google
+        // Verify with Google, then issue gate token + PayPal client ID for payment flow
         if (seventh_trad_verify_recaptcha($recaptcha_token)) {
+            $paypal_client_id = seventh_trad_get_paypal_client_id();
+
+            if (empty($paypal_client_id)) {
+                wp_send_json_error(array(
+                    'message' => __('PayPal is not configured. Please contact the administrator.', '7th-traditioner'),
+                ));
+            }
+
             wp_send_json_success(array(
-                'message' => __('Verification passed', '7th-traditioner')
+                'message' => __('Verification passed', '7th-traditioner'),
+                'gate_token' => seventh_trad_issue_gate_token(),
+                'paypal_client_id' => $paypal_client_id,
             ));
         } else {
             $fellowship_name = seventh_trad_get_fellowship_name();
@@ -617,6 +703,30 @@ class Seventh_Traditioner {
                 <th><?php esc_html_e('PayPal Status:', '7th-traditioner'); ?></th>
                 <td><?php echo esc_html($contribution->paypal_status); ?></td>
             </tr>
+            <?php if (!empty($contribution->is_recurring)) : ?>
+            <tr>
+                <th><?php esc_html_e('Recurring:', '7th-traditioner'); ?></th>
+                <td>
+                    <?php
+                    echo esc_html($contribution->is_renewal
+                        ? __('Monthly renewal', '7th-traditioner')
+                        : __('Monthly subscription', '7th-traditioner'));
+                    ?>
+                </td>
+            </tr>
+            <?php endif; ?>
+            <?php if (!empty($contribution->subscription_id)) : ?>
+            <tr>
+                <th><?php esc_html_e('Subscription ID:', '7th-traditioner'); ?></th>
+                <td><code><?php echo esc_html($contribution->subscription_id); ?></code></td>
+            </tr>
+            <?php endif; ?>
+            <?php if (!empty($contribution->subscription_status)) : ?>
+            <tr>
+                <th><?php esc_html_e('Subscription Status:', '7th-traditioner'); ?></th>
+                <td><?php echo esc_html($contribution->subscription_status); ?></td>
+            </tr>
+            <?php endif; ?>
             <?php if ($contribution->custom_notes) : ?>
             <tr>
                 <th><?php esc_html_e('Notes:', '7th-traditioner'); ?></th>

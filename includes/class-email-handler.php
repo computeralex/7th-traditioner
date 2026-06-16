@@ -116,11 +116,22 @@ class Seventh_Trad_Email_Handler {
                                         <?php
                                         printf(
                                             /* translators: %s: Fellowship name */
-                                            esc_html__('Thank you for your contribution to %s.', '7th-traditioner'),
+                                            esc_html__('Thank you for your voluntary contribution to %s.', '7th-traditioner'),
                                             '<strong>' . esc_html($fellowship_name) . '</strong>'
                                         );
                                         ?>
                                     </p>
+                                    <?php if (!empty($contribution->is_recurring)) : ?>
+                                    <p style="margin: 0 0 30px; color: #2d3748; font-size: 16px; line-height: 1.6;">
+                                        <?php
+                                        if (!empty($contribution->is_renewal)) {
+                                            esc_html_e('This is your monthly renewal payment. Thank you for your continued voluntary contribution.', '7th-traditioner');
+                                        } else {
+                                            esc_html_e('This is a voluntary monthly contribution. It will renew automatically each month until you cancel through PayPal.', '7th-traditioner');
+                                        }
+                                        ?>
+                                    </p>
+                                    <?php endif; ?>
 
                                     <!-- Contribution Details -->
                                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; padding: 20px; margin-bottom: 30px;">

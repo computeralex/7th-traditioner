@@ -78,6 +78,66 @@
     display: block;
 }
 
+/* One-time vs monthly selector (shown after reCAPTCHA when recurring is enabled) */
+.seventh-trad-contribution-type-selector {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.seventh-trad-contribution-type-selector h3 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.seventh-trad-contribution-type-selector .seventh-trad-help {
+    margin: 0 0 30px;
+    color: #666;
+}
+
+.seventh-trad-contribution-type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.seventh-trad-contribution-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 20px 24px;
+    border: 2px solid #1E2F73;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1E2F73;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    font-family: inherit;
+    text-align: center;
+}
+
+.seventh-trad-contribution-type-btn:hover,
+.seventh-trad-contribution-type-btn:focus {
+    background: #1E2F73;
+    color: #ffffff;
+    outline: none;
+}
+
+.seventh-trad-contribution-type-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.seventh-trad-contribution-type-desc {
+    font-size: 14px;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
 .seventh-trad-form-wrapper {
     background: #ffffff;
     border-radius: 8px;
@@ -101,22 +161,6 @@
     line-height: 1.7;
     color: #1a1a1a;
     text-align: center;
-}
-
-/* Tradition Notice */
-.seventh-trad-tradition-notice {
-    background: #e6f2ff;
-    border-left: 4px solid #0066cc;
-    padding: 18px 22px;
-    margin-bottom: 30px;
-    border-radius: 4px;
-}
-
-.seventh-trad-tradition-notice p {
-    margin: 0;
-    font-size: 16px;
-    line-height: 1.7;
-    color: #000000;
 }
 
 /* Messages */
@@ -413,6 +457,15 @@ small.seventh-trad-help {
 .seventh-trad-paypal-container {
     margin: 30px 0;
     min-height: 50px;
+}
+
+.seventh-trad-paypal-placeholder {
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+    color: #666666;
+    font-size: 16px;
+    line-height: 1.5;
 }
 
 /* Loading */

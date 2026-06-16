@@ -14,11 +14,33 @@ if (!defined('ABSPATH')) {
 class Seventh_Trad_PayPal_Handler {
 
     /**
+     * Get current PayPal mode
+     *
+     * @return string sandbox|live
+     */
+    public static function get_mode() {
+        return get_option('seventh_trad_paypal_mode', 'sandbox') === 'live' ? 'live' : 'sandbox';
+    }
+
+    /**
+     * Whether server-side credentials (secret) are configured
+     *
+     * @return bool
+     */
+    public static function has_server_credentials() {
+        $mode = self::get_mode();
+        $secret = ($mode === 'live')
+            ? get_option('seventh_trad_paypal_live_secret')
+            : get_option('seventh_trad_paypal_sandbox_secret');
+
+        return !empty($secret) && !empty(self::get_client_id());
+    }
+
+    /**
      * Get PayPal API base URL based on mode
      */
-    private static function get_api_base_url() {
-        $mode = get_option('seventh_trad_paypal_mode', 'sandbox');
-        return ($mode === 'live')
+    public static function get_api_base_url() {
+        return (self::get_mode() === 'live')
             ? 'https://api-m.paypal.com'
             : 'https://api-m.sandbox.paypal.com';
     }
@@ -26,8 +48,8 @@ class Seventh_Trad_PayPal_Handler {
     /**
      * Get PayPal client ID based on mode
      */
-    private static function get_client_id() {
-        $mode = get_option('seventh_trad_paypal_mode', 'sandbox');
+    public static function get_client_id() {
+        $mode = self::get_mode();
         return ($mode === 'live')
             ? get_option('seventh_trad_paypal_live_client_id')
             : get_option('seventh_trad_paypal_sandbox_client_id');
@@ -36,8 +58,8 @@ class Seventh_Trad_PayPal_Handler {
     /**
      * Get PayPal secret based on mode
      */
-    private static function get_secret() {
-        $mode = get_option('seventh_trad_paypal_mode', 'sandbox');
+    public static function get_secret() {
+        $mode = self::get_mode();
         return ($mode === 'live')
             ? get_option('seventh_trad_paypal_live_secret')
             : get_option('seventh_trad_paypal_sandbox_secret');
@@ -46,7 +68,7 @@ class Seventh_Trad_PayPal_Handler {
     /**
      * Get PayPal access token
      */
-    private static function get_access_token() {
+    public static function get_access_token() {
         $client_id = self::get_client_id();
         $secret = self::get_secret();
 

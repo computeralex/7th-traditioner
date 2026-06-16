@@ -10,8 +10,19 @@
     const SeventhTrad = {
         form: null,
         recaptchaToken: null,
+        gateToken: null,
+        paypalClientId: null,
         selectedCurrency: null,
         paypalSDKLoaded: false,
+        paypalSDKMode: null,
+        paypalSDKCurrency: null,
+        paypalSDKFunding: null,
+        contributionType: null,
+        pendingFormCurrency: null,
+        recaptchaScriptId: 'seventh-trad-recaptcha-sdk',
+        recaptchaLoadPromise: null,
+        cachedPlanId: null,
+        paypalButtonInstance: null,
 
         /**
          * Initialize
@@ -26,6 +37,7 @@
 
             this.initReCaptcha();
             this.bindEvents();
+            this.initContributionTypeSelector();
             this.initCurrencySelector();
             // Don't call initSubmitButton() yet - will be called after currency selection
         },
@@ -42,15 +54,36 @@
                 return false;
             });
 
-            // Contributor type change
+            // Contributor type gates when payment loads (not which funding methods appear)
             $('#seventh-trad-contributor-type').on('change', function() {
                 const type = $(this).val();
+                const $groupFields = $('#group-fields');
+                const afterLayout = function() {
+                    self.handleContributorTypePaymentUpdate();
+                };
+
                 if (type === 'group') {
-                    $('#group-fields').slideDown();
+                    if (!$groupFields.is(':visible')) {
+                        $groupFields.slideDown(400, afterLayout);
+                    } else {
+                        afterLayout();
+                    }
                     $('#seventh-trad-meeting-day').prop('required', true);
                     $('#seventh-trad-meeting').prop('required', true);
+                } else if (type === 'individual') {
+                    if ($groupFields.is(':visible')) {
+                        $groupFields.slideUp(400, afterLayout);
+                    } else {
+                        afterLayout();
+                    }
+                    $('#seventh-trad-meeting-day').prop('required', false);
+                    $('#seventh-trad-meeting').prop('required', false);
                 } else {
-                    $('#group-fields').slideUp();
+                    if ($groupFields.is(':visible')) {
+                        $groupFields.slideUp(400, afterLayout);
+                    } else {
+                        afterLayout();
+                    }
                     $('#seventh-trad-meeting-day').prop('required', false);
                     $('#seventh-trad-meeting').prop('required', false);
                 }
@@ -93,9 +126,6 @@
                 $('#seventh-trad-other-meeting').prop('required', false);
                 $('#seventh-trad-meeting').prop('required', true);
             });
-
-            // Currency is now selected at the top before form loads
-            // No need for currency change handler
 
             // Validate and format amount field with proper decimal places
             $('#seventh-trad-amount').on('input', function() {
@@ -169,19 +199,68 @@
         },
 
         /**
-         * Initialize reCAPTCHA v3
+         * Load Google reCAPTCHA v3 (dynamically, like PayPal SDK).
+         * WP-enqueued scripts are often stripped by page caches on Elementor pages.
          */
-        initReCaptcha: function() {
+        loadReCaptchaSDK: function() {
+            const self = this;
             const siteKey = seventhTradData.recaptcha_site_key;
 
             if (!siteKey) {
-                return;
+                return Promise.resolve();
             }
 
-            // grecaptcha is loaded via the Google reCAPTCHA script
             if (typeof grecaptcha !== 'undefined') {
-                grecaptcha.ready(function() {
+                return new Promise(function(resolve) {
+                    grecaptcha.ready(resolve);
                 });
+            }
+
+            if (self.recaptchaLoadPromise) {
+                return self.recaptchaLoadPromise;
+            }
+
+            self.recaptchaLoadPromise = new Promise(function(resolve, reject) {
+                const finish = function() {
+                    if (typeof grecaptcha === 'undefined') {
+                        reject(new Error('reCAPTCHA failed to initialize'));
+                        return;
+                    }
+                    grecaptcha.ready(resolve);
+                };
+
+                const existing = document.getElementById(self.recaptchaScriptId);
+                if (existing) {
+                    existing.addEventListener('load', finish);
+                    existing.addEventListener('error', function() {
+                        reject(new Error('Failed to load reCAPTCHA'));
+                    });
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.id = self.recaptchaScriptId;
+                script.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(siteKey);
+                script.async = true;
+                script.onload = finish;
+                script.onerror = function() {
+                    reject(new Error('Failed to load reCAPTCHA'));
+                };
+                document.head.appendChild(script);
+            }).catch(function(err) {
+                self.recaptchaLoadPromise = null;
+                throw err;
+            });
+
+            return self.recaptchaLoadPromise;
+        },
+
+        /**
+         * Initialize reCAPTCHA v3
+         */
+        initReCaptcha: function() {
+            if (!seventhTradData.recaptcha_site_key) {
+                return;
             }
         },
 
@@ -192,11 +271,13 @@
             const self = this;
             const siteKey = seventhTradData.recaptcha_site_key;
 
-            if (!siteKey || typeof grecaptcha === 'undefined') {
+            if (!siteKey) {
                 return Promise.resolve(null);
             }
 
-            return grecaptcha.execute(siteKey, { action: 'seventh_trad_contribution' });
+            return self.loadReCaptchaSDK().then(function() {
+                return grecaptcha.execute(siteKey, { action: 'seventh_trad_contribution' });
+            });
         },
 
         /**
@@ -300,6 +381,63 @@
         },
 
         /**
+         * Whether monthly recurring is selected
+         */
+        isMonthlyContribution: function() {
+            return seventhTradData.recurringEnabled && this.contributionType === 'monthly';
+        },
+
+        /**
+         * Append gate token to payment-related AJAX payloads when reCAPTCHA is enabled.
+         */
+        appendGateData: function(data) {
+            if (this.gateToken) {
+                data.gate_token = this.gateToken;
+            }
+            return data;
+        },
+
+        /**
+         * Resolve PayPal client ID (issued after gate, or public when reCAPTCHA is off).
+         */
+        getPayPalClientId: function() {
+            return this.paypalClientId || seventhTradData.paypal_client_id || '';
+        },
+
+        /**
+         * Cache form data before PayPal popup
+         */
+        cacheFormData: function() {
+            const firstName = $('#seventh-trad-first-name').val();
+            const lastName = $('#seventh-trad-last-name').val();
+            const contributorType = $('#seventh-trad-contributor-type').val();
+
+            this.cachedFormData = {
+                member_name: firstName.trim() + ' ' + lastName.trim(),
+                member_email: $('#seventh-trad-email').val(),
+                phone: $('#seventh-trad-phone').val(),
+                contributor_type: contributorType,
+                amount: $('#seventh-trad-amount').val(),
+                custom_notes: $('#seventh-trad-notes').val()
+            };
+
+            if (contributorType === 'group') {
+                const isManualEntry = $('#other-meeting-field').is(':visible');
+
+                this.cachedFormData.meeting_day = $('#seventh-trad-meeting-day').val();
+                this.cachedFormData.group_id = $('#seventh-trad-group-id').val();
+
+                if (isManualEntry) {
+                    this.cachedFormData.meeting_name = $('#seventh-trad-other-meeting').val();
+                    this.cachedFormData.meeting_id = '';
+                } else {
+                    this.cachedFormData.meeting_id = $('#seventh-trad-meeting').val();
+                    this.cachedFormData.meeting_name = $('#seventh-trad-meeting option:selected').text();
+                }
+            }
+        },
+
+        /**
          * Save contribution to database
          */
         saveContribution: async function(orderData, recaptchaToken) {
@@ -312,7 +450,7 @@
             }
 
             // Use cached form data that was captured during createOrder
-            const formData = {
+            const formData = self.appendGateData({
                 action: 'seventh_trad_save_contribution',
                 nonce: seventhTradData.nonce,
                 recaptcha_token: recaptchaToken || '',
@@ -326,7 +464,7 @@
                 currency: self.selectedCurrency,
                 paypal_status: orderData.status,
                 custom_notes: self.cachedFormData.custom_notes
-            };
+            });
 
             // Add group-specific fields if this was a group contribution
             if (self.cachedFormData.contributor_type === 'group') {
@@ -351,6 +489,60 @@
                     }
                 },
                 error: function(xhr, status, error) {
+                    self.hideLoading();
+                    self.showError(seventhTradData.strings.error);
+                }
+            });
+        },
+
+        /**
+         * Save monthly subscription to database
+         */
+        saveSubscription: function(data) {
+            const self = this;
+
+            if (!self.cachedFormData || !self.cachedPlanId) {
+                self.hideLoading();
+                self.showError('Subscription data was lost. Please try again.');
+                return;
+            }
+
+            const formData = self.appendGateData({
+                action: 'seventh_trad_save_subscription',
+                nonce: seventhTradData.nonce,
+                subscription_id: data.subscriptionID,
+                plan_id: self.cachedPlanId,
+                paypal_status: 'ACTIVE',
+                member_name: self.cachedFormData.member_name,
+                member_email: self.cachedFormData.member_email,
+                phone: self.cachedFormData.phone,
+                contributor_type: self.cachedFormData.contributor_type,
+                amount: self.cachedFormData.amount,
+                currency: self.selectedCurrency,
+                custom_notes: self.cachedFormData.custom_notes
+            });
+
+            if (self.cachedFormData.contributor_type === 'group') {
+                formData.meeting_day = self.cachedFormData.meeting_day;
+                formData.meeting_id = self.cachedFormData.meeting_id || '';
+                formData.meeting_name = self.cachedFormData.meeting_name || '';
+                formData.group_id = self.cachedFormData.group_id || '';
+            }
+
+            $.ajax({
+                url: seventhTradData.ajax_url,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    self.hideLoading();
+
+                    if (response.success) {
+                        self.showSuccess(response.data.message || seventhTradData.strings.monthly_success);
+                    } else {
+                        self.showError(response.data.message || seventhTradData.strings.error);
+                    }
+                },
+                error: function() {
                     self.hideLoading();
                     self.showError(seventhTradData.strings.error);
                 }
@@ -440,6 +632,67 @@
         },
 
         /**
+         * Initialize one-time vs monthly choice (locked after selection, like currency).
+         */
+        initContributionTypeSelector: function() {
+            const self = this;
+
+            $('.seventh-trad-contribution-type-btn').on('click', function() {
+                const type = $(this).data('type');
+                if (type === 'one-time' || type === 'monthly') {
+                    self.selectContributionType(type);
+                }
+            });
+
+            $('#seventh-trad-contribution-start-over').on('click', function() {
+                window.location.reload();
+            });
+        },
+
+        /**
+         * Commit to one-time or monthly before the rest of the form proceeds.
+         */
+        selectContributionType: function(type) {
+            const self = this;
+
+            self.contributionType = type;
+            $('#seventh-trad-contribution-type-selector').hide();
+
+            if (type === 'monthly') {
+                $('#seventh-trad-monthly-hidden').val('1');
+                $('#seventh-trad-contribution-type-display-text').text(
+                    seventhTradData.strings.contribution_type_monthly
+                );
+            } else {
+                $('#seventh-trad-monthly-hidden').val('');
+                $('#seventh-trad-contribution-type-display-text').text(
+                    seventhTradData.strings.contribution_type_onetime
+                );
+            }
+
+            self.finishFormSetup();
+        },
+
+        /**
+         * Show the form after currency and contribution type are decided.
+         */
+        finishFormSetup: function() {
+            const self = this;
+            const pending = self.pendingFormCurrency;
+
+            if (!pending) {
+                return;
+            }
+
+            self.form.show();
+            $('#seventh-trad-contribution-type-locked').show();
+            self.clearPayPalSection();
+            self.updateMinMaxForCurrency(pending.currency);
+            $('#seventh-trad-amount').data('decimals', pending.decimals);
+            $('#seventh-trad-currency-symbol').text(pending.symbol);
+        },
+
+        /**
          * Initialize currency selector
          */
         initCurrencySelector: function() {
@@ -457,12 +710,9 @@
                 window.location.reload();
             });
 
-            // Check if only one currency is enabled - auto-select it
-            const isSingleCurrency = $('.seventh-trad-container').data('single-currency') === true;
-            const autoCurrency = $('.seventh-trad-container').data('auto-currency');
-
-            if (isSingleCurrency && autoCurrency) {
-                self.selectCurrency(autoCurrency);
+            // Single currency: skip picker and load the form directly
+            if (seventhTradData.singleCurrencyMode && seventhTradData.autoCurrency) {
+                self.selectCurrency(seventhTradData.autoCurrency);
                 return;
             }
 
@@ -484,27 +734,19 @@
             // Store selected currency
             self.selectedCurrency = currency;
 
-            // Get currency details from the dropdown or data attributes (for single currency mode)
-            const $container = $('.seventh-trad-container');
-            const isSingleCurrency = $container.data('single-currency') === true;
-
             let symbol, decimals, currencyName;
 
-            if (isSingleCurrency) {
-                // Get from container data attributes
-                symbol = $container.data('currency-symbol');
-                decimals = $container.data('currency-decimals');
-                currencyName = $container.data('currency-name');
+            if (seventhTradData.singleCurrencyMode) {
+                symbol = seventhTradData.currencySymbol;
+                decimals = seventhTradData.currencyDecimals;
+                currencyName = seventhTradData.currencyName || currency;
             } else {
-                // Get from dropdown option
                 const $option = $('#seventh-trad-currency-choice option[value="' + currency + '"]');
                 symbol = $option.data('symbol');
                 decimals = $option.data('decimals');
                 currencyName = $option.text() || currency;
+                $('#seventh-trad-currency-display-text').text(currencyName);
             }
-
-            // Update currency display in form
-            $('#seventh-trad-currency-display-text').text(currencyName);
 
             // Verify reCAPTCHA before showing form
             self.verifyRecaptchaGate(currency, symbol, decimals, currencyName);
@@ -544,6 +786,8 @@
                         $('#seventh-trad-recaptcha-loading').hide();
 
                         if (response.success) {
+                            self.gateToken = response.data.gate_token || null;
+                            self.paypalClientId = response.data.paypal_client_id || null;
                             // Verification passed - show form
                             self.showFormAfterVerification(currency, symbol, decimals, currencyName);
                         } else {
@@ -585,53 +829,402 @@
         showFormAfterVerification: function(currency, symbol, decimals, currencyName) {
             const self = this;
 
-            // Show form
-            self.form.show();
+            self.pendingFormCurrency = {
+                currency: currency,
+                symbol: symbol,
+                decimals: decimals,
+                currencyName: currencyName
+            };
 
-            // Load PayPal SDK with selected currency
-            self.loadPayPalSDK(currency);
+            if (seventhTradData.recurringEnabled) {
+                $('#seventh-trad-contribution-type-selector').show();
+                return;
+            }
 
-            // Update min/max for selected currency
-            self.updateMinMaxForCurrency(currency);
-
-            // Store currency info for amount field
-            $('#seventh-trad-amount').data('decimals', decimals);
-            $('#seventh-trad-currency-symbol').text(symbol);
+            self.contributionType = 'one-time';
+            self.finishFormSetup();
         },
 
         /**
-         * Load PayPal SDK with specified currency
+         * Close and discard the current PayPal button instance.
+         */
+        destroyPayPalButton: function() {
+            if (this.paypalButtonInstance) {
+                try {
+                    this.paypalButtonInstance.close();
+                } catch (e) {
+                    // Ignore if already closed
+                }
+                this.paypalButtonInstance = null;
+            }
+            $('#seventh-trad-paypal-button-container').empty();
+        },
+
+        /**
+         * Whether the contributor has chosen individual or group.
+         */
+        isContributorTypeSelected: function() {
+            const type = $('#seventh-trad-contributor-type').val();
+            return type === 'individual' || type === 'group';
+        },
+
+        /**
+         * PayPal funding sources to disable for the current form state.
+         * One-time (individual or group): PayPal + debit/credit card.
+         * Monthly recurring: PayPal only (PayPal account required).
+         */
+        getDisabledFundingSources: function() {
+            if (this.isMonthlyContribution()) {
+                return 'paylater,card';
+            }
+
+            return 'paylater';
+        },
+
+        /**
+         * Whether the loaded SDK still matches the current form state.
+         */
+        canReusePayPalSDK: function() {
+            return this.paypalSDKLoaded
+                && this.isPayPalSDKReady()
+                && this.paypalSDKMode === this.getPayPalSDKType()
+                && this.paypalSDKCurrency === this.selectedCurrency
+                && this.paypalSDKFunding === this.getDisabledFundingSources();
+        },
+
+        /**
+         * Re-render buttons after layout shift without reloading the SDK.
+         */
+        rerenderPayPalButtonsAfterLayout: function() {
+            const self = this;
+
+            if (!self.selectedCurrency || !self.isContributorTypeSelected()) {
+                self.clearPayPalSection();
+                return;
+            }
+
+            if (!self.canReusePayPalSDK()) {
+                self.schedulePayPalLoad();
+                return;
+            }
+
+            self.hidePayPalPlaceholder();
+            self.cachedPlanId = null;
+            self.destroyPayPalButton();
+
+            window.setTimeout(function() {
+                if (self.canReusePayPalSDK() && self.isContributorTypeSelected()) {
+                    self.initSubmitButton();
+                } else {
+                    self.schedulePayPalLoad();
+                }
+            }, 50);
+        },
+
+        /**
+         * Load or refresh payment UI after contributor type changes.
+         */
+        handleContributorTypePaymentUpdate: function() {
+            const self = this;
+
+            if (!self.selectedCurrency || !self.isContributorTypeSelected()) {
+                self.clearPayPalSection();
+                return;
+            }
+
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    if (self.canReusePayPalSDK()) {
+                        self.rerenderPayPalButtonsAfterLayout();
+                    } else {
+                        self.schedulePayPalLoad();
+                    }
+                });
+            });
+        },
+
+        /**
+         * Show placeholder until contributor type is selected.
+         */
+        showPayPalPlaceholder: function() {
+            const message = seventhTradData.strings.select_contributor_for_payment
+                || 'Select how you are contributing above to continue to payment.';
+            $('#seventh-trad-paypal-placeholder').text(message).show();
+        },
+
+        /**
+         * Hide payment placeholder once buttons are loading or rendered.
+         */
+        hidePayPalPlaceholder: function() {
+            $('#seventh-trad-paypal-placeholder').hide();
+        },
+
+        /**
+         * Reset payment section when contributor type is not yet chosen.
+         */
+        clearPayPalSection: function() {
+            this.unloadPayPalSDK();
+            this.showPayPalPlaceholder();
+        },
+
+        /**
+         * Load or reload PayPal after layout settles.
+         */
+        schedulePayPalLoad: function() {
+            const self = this;
+
+            if (!self.selectedCurrency || !self.isContributorTypeSelected()) {
+                self.clearPayPalSection();
+                return;
+            }
+
+            self.hidePayPalPlaceholder();
+
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    self.reloadPayPalButtons();
+                });
+            });
+        },
+
+        /**
+         * Resolve which PayPal SDK mode is needed for the current form state.
+         */
+        getPayPalSDKType: function() {
+            return this.isMonthlyContribution() ? 'subscription' : 'capture';
+        },
+
+        /**
+         * Remove leftover PayPal/zoid DOM nodes before reloading the SDK.
+         */
+        cleanupPayPalArtifacts: function() {
+            this.destroyPayPalButton();
+
+            document.querySelectorAll('[id*="zoid-paypal"], iframe[src*="paypal.com"]').forEach(function(el) {
+                el.remove();
+            });
+
+            const $container = $('#seventh-trad-paypal-button-container');
+            if ($container.length) {
+                $container.replaceWith('<div id="seventh-trad-paypal-button-container"></div>');
+            }
+        },
+
+        /**
+         * Whether the PayPal SDK is ready to render buttons.
+         */
+        isPayPalSDKReady: function() {
+            return !!(window.paypal && typeof window.paypal.Buttons === 'function');
+        },
+
+        /**
+         * Remove any PayPal SDK script and globals (required before swapping intent).
+         */
+        unloadPayPalSDK: function() {
+            const scriptIds = [
+                'seventh-trad-paypal-sdk',
+                'seventh-trad-paypal-capture-sdk',
+                'seventh-trad-paypal-subscription-sdk'
+            ];
+
+            this.cleanupPayPalArtifacts();
+
+            scriptIds.forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.remove();
+                }
+            });
+
+            window.paypal = null;
+            window.paypal_capture = null;
+            window.paypal_subscription = null;
+            delete window.paypal;
+            delete window.paypal_capture;
+            delete window.paypal_subscription;
+
+            this.paypalSDKLoaded = false;
+            this.paypalSDKMode = null;
+            this.paypalSDKCurrency = null;
+            this.paypalSDKFunding = null;
+        },
+
+        /**
+         * Reload PayPal buttons when monthly toggle or layout changes.
+         */
+        reloadPayPalButtons: function() {
+            const self = this;
+
+            if (!self.selectedCurrency || !self.isContributorTypeSelected()) {
+                self.clearPayPalSection();
+                return;
+            }
+
+            const type = self.getPayPalSDKType();
+            const fundingKey = self.getDisabledFundingSources();
+
+            self.cachedPlanId = null;
+            self.destroyPayPalButton();
+            self.hidePayPalPlaceholder();
+
+            if (self.canReusePayPalSDK()) {
+                self.initSubmitButton();
+                return;
+            }
+
+            self.loadPayPalSDKForMode(self.selectedCurrency, type).then(function() {
+                self.initSubmitButton();
+            }).catch(function(err) {
+                console.error('PayPal reload error:', err);
+                self.showPayPalLoadError(err);
+            });
+        },
+
+        /**
+         * Load one PayPal SDK for the given currency and mode.
+         *
+         * @param {string} currency Currency code
+         * @param {string} type 'capture' or 'subscription'
+         * @return {Promise<object>}
+         */
+        loadPayPalSDKForMode: function(currency, type) {
+            const self = this;
+            const isSubscription = type === 'subscription';
+            const scriptId = 'seventh-trad-paypal-sdk';
+            const fundingKey = self.getDisabledFundingSources();
+
+            if (self.paypalSDKLoaded
+                && self.paypalSDKMode === type
+                && self.paypalSDKCurrency === currency
+                && self.paypalSDKFunding === fundingKey
+                && self.isPayPalSDKReady()) {
+                return Promise.resolve(window.paypal);
+            }
+
+            const needsSdkSwap = self.paypalSDKLoaded
+                && (self.paypalSDKMode !== type
+                    || self.paypalSDKCurrency !== currency
+                    || self.paypalSDKFunding !== fundingKey);
+
+            const loadScript = function(resolve, reject) {
+                const waitForPayPal = function(attempts) {
+                    if (self.isPayPalSDKReady()) {
+                        self.paypalSDKLoaded = true;
+                        self.paypalSDKMode = type;
+                        self.paypalSDKCurrency = currency;
+                        self.paypalSDKFunding = fundingKey;
+                        resolve(window.paypal);
+                    } else if (attempts > 0) {
+                        setTimeout(function() { waitForPayPal(attempts - 1); }, 50);
+                    } else {
+                        reject(new Error('PayPal SDK failed to initialize'));
+                    }
+                };
+
+                const clientId = self.getPayPalClientId();
+                if (!clientId) {
+                    reject(new Error('PayPal is not configured'));
+                    return;
+                }
+
+                let sdkUrl = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(clientId)
+                             + '&currency=' + encodeURIComponent(currency)
+                             + '&disable-funding=' + encodeURIComponent(fundingKey);
+
+                if (isSubscription) {
+                    sdkUrl += '&intent=subscription&vault=true';
+                }
+
+                const existing = document.getElementById(scriptId);
+                if (existing) {
+                    existing.remove();
+                }
+
+                const script = document.createElement('script');
+                script.id = scriptId;
+                script.src = sdkUrl;
+                script.async = true;
+                script.setAttribute('data-sdk-mode', type);
+                script.setAttribute('data-sdk-currency', currency);
+                script.setAttribute('data-sdk-funding', fundingKey);
+                script.onload = function() { waitForPayPal(60); };
+                script.onerror = function() {
+                    reject(new Error('Failed to load PayPal'));
+                };
+                document.head.appendChild(script);
+            };
+
+            if (needsSdkSwap) {
+                self.unloadPayPalSDK();
+                return new Promise(function(resolve, reject) {
+                    window.setTimeout(function() {
+                        loadScript(resolve, reject);
+                    }, 250);
+                });
+            }
+
+            return new Promise(loadScript);
+        },
+
+        /**
+         * Show a user-facing PayPal load failure message.
+         */
+        showPayPalLoadError: function(err) {
+            const message = err && err.message === 'PayPal is not configured'
+                ? 'PayPal is not configured. Please contact the administrator.'
+                : 'Failed to load PayPal. Please refresh the page.';
+            $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">' + message + '</div>');
+        },
+
+        /**
+         * Load PayPal SDK for the selected currency and current form mode.
          */
         loadPayPalSDK: function(currency) {
             const self = this;
+            const type = self.getPayPalSDKType();
 
-            if (self.paypalSDKLoaded) {
-                return;
-            }
-
-
-            const clientId = seventhTradData.paypal_client_id;
-            if (!clientId) {
-                $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">PayPal is not configured. Please contact the administrator.</div>');
-                return;
-            }
-
-            const sdkUrl = 'https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(clientId)
-                         + '&currency=' + encodeURIComponent(currency)
-                         + '&disable-funding=paylater';
-
-            const script = document.createElement('script');
-            script.src = sdkUrl;
-            script.async = true;
-            script.onload = function() {
-                self.paypalSDKLoaded = true;
+            self.loadPayPalSDKForMode(currency, type).then(function() {
                 self.initSubmitButton();
-            };
-            script.onerror = function() {
-                $('#seventh-trad-paypal-button-container').html('<div class="seventh-trad-error">Failed to load PayPal. Please refresh the page.</div>');
-            };
+            }).catch(function(err) {
+                console.error('PayPal load error:', err);
+                self.showPayPalLoadError(err);
+            });
+        },
 
-            document.head.appendChild(script);
+        /**
+         * Create a monthly subscription plan server-side, then subscribe
+         */
+        createMonthlySubscription: function(actions) {
+            const self = this;
+            const amount = $('#seventh-trad-amount').val();
+            const currency = self.selectedCurrency;
+
+            self.cacheFormData();
+
+            return $.ajax({
+                url: seventhTradData.ajax_url,
+                type: 'POST',
+                data: self.appendGateData({
+                    action: 'seventh_trad_create_subscription_plan',
+                    nonce: seventhTradData.nonce,
+                    amount: amount,
+                    currency: currency
+                })
+            }).then(function(response) {
+                if (!response.success || !response.data.plan_id) {
+                    const message = response.data && response.data.message
+                        ? response.data.message
+                        : 'Failed to create subscription plan.';
+                    self.showError(message);
+                    throw new Error(message);
+                }
+
+                self.cachedPlanId = response.data.plan_id;
+
+                return actions.subscription.create({
+                    plan_id: response.data.plan_id
+                });
+            });
         },
 
         /**
@@ -639,16 +1232,19 @@
          */
         initSubmitButton: function() {
             const self = this;
+            const paypalApi = window.paypal;
 
-            // Check if PayPal SDK is available
-            if (typeof paypal === 'undefined') {
+            if (!paypalApi || !paypalApi.Buttons) {
                 return;
             }
 
+            if (self.paypalButtonInstance) {
+                self.destroyPayPalButton();
+            } else {
+                $('#seventh-trad-paypal-button-container').empty();
+            }
 
-            // Render PayPal buttons
-            paypal.Buttons({
-                // Style configuration
+            const buttonConfig = {
                 style: {
                     layout: 'vertical',
                     color: 'gold',
@@ -656,71 +1252,56 @@
                     label: 'paypal'
                 },
 
-                // Validate form before creating order
                 onClick: function(data, actions) {
-
-                    // Trigger browser's native form validation
                     const form = self.form[0];
                     if (!form.checkValidity()) {
-                        form.reportValidity(); // Shows browser validation messages
-
-                        // Also show custom error since reportValidity doesn't always work in iframe context
+                        form.reportValidity();
                         const firstInvalid = form.querySelector(':invalid');
                         if (firstInvalid) {
                             const fieldLabel = $('label[for="' + firstInvalid.id + '"]').text().trim().replace('*', '').trim();
                             self.showError('Please fill out required field: ' + fieldLabel);
                         }
-
                         return actions.reject();
                     }
 
-                    // Additional custom validation
                     if (!self.validateForm()) {
                         return actions.reject();
                     }
 
-                    // reCAPTCHA verification already done at currency selection gate
                     return actions.resolve();
                 },
-                createOrder: function(data, actions) {
 
-                    // Get form data
+                onCancel: function() {
+                    self.showError('Payment was cancelled. Please try again if you wish to contribute.');
+                },
+
+                onError: function(err) {
+                    let errorMessage = 'An error occurred with PayPal.';
+                    if (err && err.message) {
+                        errorMessage += ' Error: ' + err.message;
+                    }
+                    self.showError(errorMessage);
+                }
+            };
+
+            if (self.isMonthlyContribution()) {
+                buttonConfig.createSubscription = function(data, actions) {
+                    return self.createMonthlySubscription(actions);
+                };
+                buttonConfig.onApprove = function(data) {
+                    self.showLoading();
+                    self.saveSubscription(data);
+                };
+            } else {
+                buttonConfig.createOrder = function(data, actions) {
                     const amount = $('#seventh-trad-amount').val();
                     const currency = self.selectedCurrency;
                     const itemDetails = self.getItemDetails();
                     const email = $('#seventh-trad-email').val();
                     const firstName = $('#seventh-trad-first-name').val();
                     const lastName = $('#seventh-trad-last-name').val();
-                    const contributorType = $('#seventh-trad-contributor-type').val();
 
-                    // Cache form data NOW (before PayPal popup opens) so it's available when saveContribution runs later
-                    self.cachedFormData = {
-                        member_name: firstName.trim() + ' ' + lastName.trim(),
-                        member_email: email,
-                        phone: $('#seventh-trad-phone').val(),
-                        contributor_type: contributorType,
-                        amount: amount,
-                        custom_notes: $('#seventh-trad-notes').val()
-                    };
-
-                    // Cache group-specific fields if this is a group contribution
-                    if (contributorType === 'group') {
-                        const meetingDay = $('#seventh-trad-meeting-day').val();
-                        const isManualEntry = $('#other-meeting-field').is(':visible');
-
-                        self.cachedFormData.meeting_day = meetingDay;
-                        self.cachedFormData.group_id = $('#seventh-trad-group-id').val();
-
-                        if (isManualEntry) {
-                            self.cachedFormData.meeting_name = $('#seventh-trad-other-meeting').val();
-                            self.cachedFormData.meeting_id = '';
-                        } else {
-                            const $selectedMeeting = $('#seventh-trad-meeting option:selected');
-                            self.cachedFormData.meeting_id = $('#seventh-trad-meeting').val();
-                            self.cachedFormData.meeting_name = $selectedMeeting.text();
-                        }
-                    }
-
+                    self.cacheFormData();
 
                     // Build order object with item breakdown
                     const orderData = {
@@ -762,41 +1343,24 @@
                         };
                     }
 
-                    // Create order client-side (NO SERVER SECRETS NEEDED!)
                     return actions.order.create(orderData);
-                },
-                onApprove: function(data, actions) {
-
-                    // Show loading
+                };
+                buttonConfig.onApprove = function(data, actions) {
                     self.showLoading();
-
-                    // Capture the order
                     return actions.order.capture().then(function(details) {
-
-                        // Save contribution to database (reCAPTCHA already verified at gate)
                         self.saveContribution(details, null);
                     });
-                },
-                onCancel: function(data) {
-                    self.showError('Payment was cancelled. Please try again if you wish to contribute.');
-                },
-                onError: function(err) {
+                };
+            }
 
-                    // Show detailed error for debugging
-                    let errorMessage = 'An error occurred with PayPal.';
-                    if (err && err.message) {
-                        errorMessage += ' Error: ' + err.message;
-                    }
-
-                    // Check if it's a currency issue
-                    const currency = self.selectedCurrency;
-                    if (currency !== 'USD') {
-                        errorMessage += ' NOTE: Sandbox test cards may only work with USD. Try USD or test in live mode with real transactions.';
-                    }
-
-                    self.showError(errorMessage);
-                }
-            }).render('#seventh-trad-paypal-button-container');
+            const renderResult = paypalApi.Buttons(buttonConfig).render('#seventh-trad-paypal-button-container');
+            if (renderResult && typeof renderResult.then === 'function') {
+                renderResult.then(function(instance) {
+                    self.paypalButtonInstance = instance;
+                }).catch(function(err) {
+                    console.error('PayPal button render error:', err);
+                });
+            }
         },
 
         /**

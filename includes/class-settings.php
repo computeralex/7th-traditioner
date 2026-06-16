@@ -83,6 +83,7 @@ class Seventh_Trad_Settings {
 
             <form method="post" action="">
                 <?php wp_nonce_field('seventh_trad_settings', 'seventh_trad_nonce'); ?>
+                <input type="hidden" name="seventh_trad_active_tab" value="<?php echo esc_attr($active_tab); ?>" />
 
                 <?php
                 switch ($active_tab) {
@@ -239,7 +240,7 @@ class Seventh_Trad_Settings {
         <code style="display: block; padding: 15px; background: #f5f5f5; border-radius: 4px; margin: 10px 0;">[seventh_traditioner]</code>
 
         <p><?php esc_html_e('You can also customize the title and description:', '7th-traditioner'); ?></p>
-        <code style="display: block; padding: 15px; background: #f5f5f5; border-radius: 4px; margin: 10px 0;">[seventh_traditioner title="Support Our Fellowship" description="Contributions may be made by members of the fellowship, and are 100% voluntary"]</code>
+        <code style="display: block; padding: 15px; background: #f5f5f5; border-radius: 4px; margin: 10px 0;">[seventh_traditioner title="7th Tradition Contributions" description="Voluntary contributions from fellowship members. We have no dues or fees."]</code>
 
         <script>
         jQuery(document).ready(function($) {
@@ -273,6 +274,11 @@ class Seventh_Trad_Settings {
         $paypal_mode = get_option('seventh_trad_paypal_mode', 'sandbox');
         $paypal_sandbox_client_id = get_option('seventh_trad_paypal_sandbox_client_id');
         $paypal_live_client_id = get_option('seventh_trad_paypal_live_client_id');
+        $paypal_sandbox_secret = get_option('seventh_trad_paypal_sandbox_secret');
+        $paypal_live_secret = get_option('seventh_trad_paypal_live_secret');
+        $recurring_enabled = get_option('seventh_trad_recurring_enabled', '0') === '1';
+        $webhook_id = get_option('seventh_trad_paypal_webhook_id');
+        $webhook_url = seventh_trad_get_webhook_url();
         ?>
         <table class="form-table">
             <tr>
@@ -311,6 +317,68 @@ class Seventh_Trad_Settings {
                     </p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row">
+                    <label for="paypal_sandbox_secret"><?php esc_html_e('Sandbox Secret', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="password" id="paypal_sandbox_secret" name="paypal_sandbox_secret" value="<?php echo esc_attr($paypal_sandbox_secret); ?>" class="large-text code" autocomplete="new-password" />
+                    <p class="description">
+                        <?php esc_html_e('Required only for monthly recurring contributions. Never share publicly.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="paypal_live_secret"><?php esc_html_e('Live Secret', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="password" id="paypal_live_secret" name="paypal_live_secret" value="<?php echo esc_attr($paypal_live_secret); ?>" class="large-text code" autocomplete="new-password" />
+                    <p class="description">
+                        <?php esc_html_e('Required only for monthly recurring contributions in production.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+        </table>
+
+        <h2><?php esc_html_e('Monthly Recurring Contributions', '7th-traditioner'); ?></h2>
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <label for="recurring_enabled"><?php esc_html_e('Enable Monthly Recurring', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <label>
+                        <input type="checkbox" id="recurring_enabled" name="recurring_enabled" value="1" <?php checked($recurring_enabled); ?> />
+                        <?php esc_html_e('Allow members to optionally set up a voluntary monthly contribution', '7th-traditioner'); ?>
+                    </label>
+                    <p class="description">
+                        <?php esc_html_e('When disabled, the form works exactly as before with one-time payments only. No secret keys or webhooks required.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="paypal_webhook_id"><?php esc_html_e('PayPal Webhook ID', '7th-traditioner'); ?></label>
+                </th>
+                <td>
+                    <input type="text" id="paypal_webhook_id" name="paypal_webhook_id" value="<?php echo esc_attr($webhook_id); ?>" class="large-text code" />
+                    <p class="description">
+                        <?php esc_html_e('From your PayPal app webhook settings. Required for recording monthly renewals.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <?php esc_html_e('Webhook URL', '7th-traditioner'); ?>
+                </th>
+                <td>
+                    <code style="display:block;padding:10px;background:#f5f5f5;"><?php echo esc_html($webhook_url); ?></code>
+                    <p class="description">
+                        <?php esc_html_e('Add this URL in PayPal Developer Dashboard → Webhooks. Subscribe to PAYMENT.SALE.COMPLETED and BILLING.SUBSCRIPTION.* events.', '7th-traditioner'); ?>
+                    </p>
+                </td>
+            </tr>
         </table>
 
         <div class="notice notice-info inline">
@@ -322,25 +390,17 @@ class Seventh_Trad_Settings {
                 <li>
                     <?php
                     printf(
-                        /* translators: 1: opening link tag, 2: closing link tag */
                         esc_html__('Log in to the %1$sPayPal Developer Dashboard%2$s', '7th-traditioner'),
                         '<a href="https://developer.paypal.com/dashboard/" target="_blank" rel="noopener">',
                         '</a>'
                     );
                     ?>
                 </li>
-                <li><?php esc_html_e('Create a new app (or use existing)', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('Copy the Sandbox Client ID and paste above', '7th-traditioner'); ?></li>
-                <li><?php esc_html_e('Switch to "Live" in PayPal Dashboard and copy the Live Client ID', '7th-traditioner'); ?></li>
+                <li><?php esc_html_e('Create a new app (or use existing) and copy Client ID + Secret', '7th-traditioner'); ?></li>
+                <li><?php esc_html_e('One-time contributions only need the Client ID', '7th-traditioner'); ?></li>
+                <li><?php esc_html_e('Monthly recurring also needs Secret + Webhook (see above)', '7th-traditioner'); ?></li>
                 <li><?php esc_html_e('Test with Sandbox mode first, then switch to Live when ready', '7th-traditioner'); ?></li>
             </ol>
-        </div>
-
-        <div class="notice notice-success inline">
-            <p>
-                <strong><?php esc_html_e('Client-Side Only Integration:', '7th-traditioner'); ?></strong>
-                <?php esc_html_e('This plugin uses PayPal\'s client-side JavaScript SDK with ONLY your Client ID (no secret keys required). Your Client ID is safe to use publicly and all transactions are processed securely by PayPal without storing sensitive payment data.', '7th-traditioner'); ?>
-            </p>
         </div>
         <?php
     }
@@ -634,86 +694,103 @@ class Seventh_Trad_Settings {
             wp_die(__('You do not have permission to access this page', '7th-traditioner'));
         }
 
-        // Save settings
-        if (isset($_POST['service_body_name'])) {
-            update_option('seventh_trad_service_body_name', sanitize_text_field($_POST['service_body_name']));
-        }
+        $active_tab = isset($_POST['seventh_trad_active_tab'])
+            ? sanitize_text_field(wp_unslash($_POST['seventh_trad_active_tab']))
+            : 'general';
 
-        // Save enabled currencies (checkboxes)
-        $enabled_currencies = array();
-        if (isset($_POST['enabled_currencies']) && is_array($_POST['enabled_currencies'])) {
-            $enabled_currencies = array_map('sanitize_text_field', $_POST['enabled_currencies']);
-        } else {
-            // If no currencies selected, enable all
-            $currencies = seventh_trad_get_supported_currencies();
-            $enabled_currencies = array_keys($currencies);
-        }
+        switch ($active_tab) {
+            case 'general':
+                if (isset($_POST['service_body_name'])) {
+                    update_option('seventh_trad_service_body_name', sanitize_text_field(wp_unslash($_POST['service_body_name'])));
+                }
 
-        update_option('seventh_trad_enabled_currencies', $enabled_currencies);
+                // Only present on the General tab — unchecked boxes are omitted from POST.
+                if (isset($_POST['enabled_currencies']) && is_array($_POST['enabled_currencies'])) {
+                    $enabled_currencies = array_map('sanitize_text_field', wp_unslash($_POST['enabled_currencies']));
+                } else {
+                    $enabled_currencies = array();
+                }
+                update_option('seventh_trad_enabled_currencies', $enabled_currencies);
 
-        // Save show_group_id (checkbox)
-        update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? '1' : '0');
+                update_option('seventh_trad_show_group_id', isset($_POST['show_group_id']) ? '1' : '0');
 
+                if (isset($_POST['min_contribution_amount'])) {
+                    $min_amount = sanitize_text_field(wp_unslash($_POST['min_contribution_amount']));
+                    if ($min_amount === '' || (is_numeric($min_amount) && floatval($min_amount) >= 0)) {
+                        update_option('seventh_trad_min_contribution_amount', $min_amount);
+                    }
+                }
 
-        // Save minimum contribution amount
-        if (isset($_POST['min_contribution_amount'])) {
-            $min_amount = sanitize_text_field($_POST['min_contribution_amount']);
-            if ($min_amount === '' || (is_numeric($min_amount) && floatval($min_amount) >= 0)) {
-                update_option('seventh_trad_min_contribution_amount', $min_amount);
-            }
-        }
+                if (isset($_POST['max_contribution_amount'])) {
+                    $max_amount = sanitize_text_field(wp_unslash($_POST['max_contribution_amount']));
+                    if ($max_amount === '' || (is_numeric($max_amount) && floatval($max_amount) >= 0)) {
+                        update_option('seventh_trad_max_contribution_amount', $max_amount);
+                    }
+                }
 
-        // Save maximum contribution amount
-        if (isset($_POST['max_contribution_amount'])) {
-            $max_amount = sanitize_text_field($_POST['max_contribution_amount']);
-            if ($max_amount === '' || (is_numeric($max_amount) && floatval($max_amount) >= 0)) {
-                update_option('seventh_trad_max_contribution_amount', $max_amount);
-            }
-        }
+                if (isset($_POST['amount_rounding_method'])) {
+                    $rounding_method = sanitize_text_field(wp_unslash($_POST['amount_rounding_method']));
+                    if (in_array($rounding_method, array('simple', 'smart'), true)) {
+                        update_option('seventh_trad_amount_rounding_method', $rounding_method);
+                    }
+                }
+                break;
 
-        // Save amount rounding method
-        if (isset($_POST['amount_rounding_method'])) {
-            $rounding_method = sanitize_text_field($_POST['amount_rounding_method']);
-            if (in_array($rounding_method, array('simple', 'smart'))) {
-                update_option('seventh_trad_amount_rounding_method', $rounding_method);
-            }
-        }
+            case 'paypal':
+                if (isset($_POST['paypal_mode'])) {
+                    update_option('seventh_trad_paypal_mode', sanitize_text_field(wp_unslash($_POST['paypal_mode'])));
+                }
 
-        if (isset($_POST['paypal_mode'])) {
-            update_option('seventh_trad_paypal_mode', sanitize_text_field($_POST['paypal_mode']));
-        }
+                if (isset($_POST['paypal_sandbox_client_id'])) {
+                    update_option('seventh_trad_paypal_sandbox_client_id', sanitize_text_field(wp_unslash($_POST['paypal_sandbox_client_id'])));
+                }
 
-        if (isset($_POST['paypal_sandbox_client_id'])) {
-            update_option('seventh_trad_paypal_sandbox_client_id', sanitize_text_field($_POST['paypal_sandbox_client_id']));
-        }
+                if (isset($_POST['paypal_live_client_id'])) {
+                    update_option('seventh_trad_paypal_live_client_id', sanitize_text_field(wp_unslash($_POST['paypal_live_client_id'])));
+                }
 
-        if (isset($_POST['paypal_live_client_id'])) {
-            update_option('seventh_trad_paypal_live_client_id', sanitize_text_field($_POST['paypal_live_client_id']));
-        }
+                if (isset($_POST['paypal_sandbox_secret'])) {
+                    update_option('seventh_trad_paypal_sandbox_secret', sanitize_text_field(wp_unslash($_POST['paypal_sandbox_secret'])));
+                }
 
-        if (isset($_POST['recaptcha_site_key'])) {
-            update_option('seventh_trad_recaptcha_site_key', sanitize_text_field($_POST['recaptcha_site_key']));
-        }
+                if (isset($_POST['paypal_live_secret'])) {
+                    update_option('seventh_trad_paypal_live_secret', sanitize_text_field(wp_unslash($_POST['paypal_live_secret'])));
+                }
 
-        if (isset($_POST['recaptcha_secret_key'])) {
-            update_option('seventh_trad_recaptcha_secret_key', sanitize_text_field($_POST['recaptcha_secret_key']));
-        }
+                update_option('seventh_trad_recurring_enabled', isset($_POST['recurring_enabled']) ? '1' : '0');
 
-        // Save email customization settings
-        if (isset($_POST['email_from_name'])) {
-            update_option('seventh_trad_email_from_name', sanitize_text_field($_POST['email_from_name']));
-        }
+                if (isset($_POST['paypal_webhook_id'])) {
+                    update_option('seventh_trad_paypal_webhook_id', sanitize_text_field(wp_unslash($_POST['paypal_webhook_id'])));
+                }
+                break;
 
-        if (isset($_POST['email_from_address'])) {
-            update_option('seventh_trad_email_from_address', sanitize_email($_POST['email_from_address']));
-        }
+            case 'recaptcha':
+                if (isset($_POST['recaptcha_site_key'])) {
+                    update_option('seventh_trad_recaptcha_site_key', sanitize_text_field(wp_unslash($_POST['recaptcha_site_key'])));
+                }
 
-        if (isset($_POST['email_subject'])) {
-            update_option('seventh_trad_email_subject', sanitize_text_field($_POST['email_subject']));
-        }
+                if (isset($_POST['recaptcha_secret_key'])) {
+                    update_option('seventh_trad_recaptcha_secret_key', sanitize_text_field(wp_unslash($_POST['recaptcha_secret_key'])));
+                }
+                break;
 
-        if (isset($_POST['email_title'])) {
-            update_option('seventh_trad_email_title', sanitize_text_field($_POST['email_title']));
+            case 'email':
+                if (isset($_POST['email_from_name'])) {
+                    update_option('seventh_trad_email_from_name', sanitize_text_field(wp_unslash($_POST['email_from_name'])));
+                }
+
+                if (isset($_POST['email_from_address'])) {
+                    update_option('seventh_trad_email_from_address', sanitize_email(wp_unslash($_POST['email_from_address'])));
+                }
+
+                if (isset($_POST['email_subject'])) {
+                    update_option('seventh_trad_email_subject', sanitize_text_field(wp_unslash($_POST['email_subject'])));
+                }
+
+                if (isset($_POST['email_title'])) {
+                    update_option('seventh_trad_email_title', sanitize_text_field(wp_unslash($_POST['email_title'])));
+                }
+                break;
         }
 
         // Show success message

@@ -1,19 +1,19 @@
 === 7th Traditioner ===
 Contributors: computeralex
-Tags: donations, paypal, 12-step, aa, na, contributions, subscriptions, fundraising
+Tags: contributions, 7th-tradition, paypal, 12-step, aa, na, subscriptions, self-support
 Requires at least: 5.8
 Tested up to: 6.7
-Stable tag: 1.0.3
+Stable tag: 1.1.17
 Requires PHP: 7.4
 Requires Plugins: 12-step-meeting-list
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A 7th Tradition contribution system for 12-step fellowships with PayPal integration, multi-currency support, and automatic receipts.
+A 7th Tradition system for voluntary member contributions in 12-step fellowships. PayPal integration, multi-currency support, and automatic receipts.
 
 == Description ==
 
-7th Traditioner provides a seamless way for 12-step fellowship groups to accept voluntary member contributions online while honoring the 7th Tradition:
+7th Traditioner helps fellowships accept voluntary contributions from their own members, honoring the 7th Tradition:
 
 > "Every group ought to be fully self-supporting, declining outside contributions."
 
@@ -108,6 +108,64 @@ For issues and questions, please visit the [GitHub repository](https://github.co
 5. Email receipt example
 
 == Changelog ==
+
+= 1.1.17 =
+* Feature: Export contributions to CSV from the admin Contributions screen (respects current filters)
+
+= 1.1.16 =
+* Copy: Rename "Monthly contribution" button to "Recurring contribution"
+
+= 1.1.15 =
+* Change: Remove built-in 7th Tradition notice (handled on the page separately)
+
+= 1.1.14 =
+* Copy: Tone down form language (PayPal/tax context); keep voluntary member contributions and no dues or fees
+
+= 1.1.13 =
+* Copy: 7th Tradition language throughout — voluntary member contributions only; no dues, fees, gifts, or donations
+
+= 1.1.12 =
+* Copy: Replace "gift" wording with 7th Tradition self-support language
+
+= 1.1.11 =
+* Change: Replace monthly checkbox with upfront one-time vs monthly choice (locked after selection, like currency)
+
+= 1.1.10 =
+* Fix: Monthly contribution checkbox no longer greyed out (removed lock; moved above contributor type)
+
+= 1.1.9 =
+* Fix: Contributor type can be switched without losing payment buttons (same SDK, re-render only)
+* Change: Monthly checkbox locks after payment buttons load (PayPal cannot swap subscription/one-time in-place)
+
+= 1.1.8 =
+* Fix: PayPal + debit/credit available for both individual and group one-time contributions
+* Fix: Payment buttons stay visible when switching between individual and group
+* Change: Only monthly recurring contributions are PayPal-only (PayPal account required)
+
+= 1.1.7 =
+* Change: Payment buttons load only after contributor type is selected
+
+= 1.1.6 =
+* Fix: PayPal buttons load on first page view (removed invalid data-namespace SDK param PayPal now rejects with HTTP 400)
+* Fix: Load one PayPal SDK at a time; swap capture/subscription when monthly toggle changes
+
+= 1.1.5 =
+* Fix: PayPal buttons render on first load (no longer refresh when contributor type changes without a layout shift)
+
+= 1.1.4 =
+* Fix: PayPal buttons stay visible when switching contributor type (individual vs group)
+
+= 1.1.3 =
+* Fix: PayPal buttons reappear when toggling monthly contribution on/off (separate capture/subscription SDK namespaces)
+
+= 1.1.2 =
+* Fix: Saving PayPal, reCAPTCHA, or Email settings no longer resets currencies or other General tab options
+
+= 1.1.1 =
+* Fix: Load reCAPTCHA v3 dynamically when page cache strips the enqueued script
+* Security: Issue gate token after server-side reCAPTCHA passes; withhold PayPal client ID until then
+* Security: Require gate token on payment and save endpoints
+* Improve: Clearer reCAPTCHA error logging (missing token, low score, API errors)
 
 = 1.0.3 =
 * Security: Add reCAPTCHA gate verification on currency selection

@@ -9,15 +9,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$groups = seventh_trad_get_groups();
-$all_currencies = seventh_trad_get_supported_currencies();
-$enabled_currency_codes = get_option('seventh_trad_enabled_currencies', array_keys($all_currencies));
-// Filter to only show enabled currencies
-$currencies = array_intersect_key($all_currencies, array_flip($enabled_currency_codes));
+$currencies = seventh_trad_get_enabled_currencies();
 $fellowship_name = seventh_trad_get_fellowship_name();
 
-// Check if only one currency is enabled - if so, auto-select it
-$single_currency_mode = (count($currencies) === 1);
+// Only one currency enabled: skip picker and go straight to the form
+$single_currency_mode = seventh_trad_is_single_currency_mode();
 $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
 ?>
 
@@ -41,8 +37,9 @@ $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
             </div>
         <?php endif; ?>
 
-        <!-- Currency Selection (shown first, before form, unless only one currency) -->
-        <div id="seventh-trad-currency-selector" class="seventh-trad-currency-selector" style="<?php echo $single_currency_mode ? 'display: none;' : ''; ?>">
+        <?php if (!$single_currency_mode) : ?>
+        <!-- Currency selection (only when multiple currencies are enabled) -->
+        <div id="seventh-trad-currency-selector" class="seventh-trad-currency-selector">
             <h3><?php esc_html_e('Select Your Currency', '7th-traditioner'); ?></h3>
 
             <div class="seventh-trad-field">
@@ -61,6 +58,7 @@ $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
                 </select>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- reCAPTCHA verification loading -->
         <div id="seventh-trad-recaptcha-loading" class="seventh-trad-loading" style="display: none;">
@@ -78,8 +76,27 @@ $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
             </div>
         </div>
 
+        <?php if (seventh_trad_recurring_enabled()) : ?>
+        <!-- One-time vs monthly (locked after choice — like currency selection) -->
+        <div id="seventh-trad-contribution-type-selector" class="seventh-trad-contribution-type-selector" style="display: none;">
+            <h3><?php esc_html_e('Choose your contribution type', '7th-traditioner'); ?></h3>
+            <p class="seventh-trad-help"><?php esc_html_e('Choose one to continue. Use Start Over if you need to change.', '7th-traditioner'); ?></p>
+            <div class="seventh-trad-contribution-type-options">
+                <button type="button" class="seventh-trad-contribution-type-btn" data-type="one-time">
+                    <span class="seventh-trad-contribution-type-title"><?php esc_html_e('One-time contribution', '7th-traditioner'); ?></span>
+                    <span class="seventh-trad-contribution-type-desc"><?php esc_html_e('PayPal or debit/credit card', '7th-traditioner'); ?></span>
+                </button>
+                <button type="button" class="seventh-trad-contribution-type-btn" data-type="monthly">
+                    <span class="seventh-trad-contribution-type-title"><?php esc_html_e('Recurring contribution', '7th-traditioner'); ?></span>
+                    <span class="seventh-trad-contribution-type-desc"><?php esc_html_e('PayPal account required', '7th-traditioner'); ?></span>
+                </button>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <form id="seventh-trad-form" class="seventh-trad-form" style="display: none;">
-            <!-- Currency locked in at top -->
+            <?php if (!$single_currency_mode) : ?>
+            <!-- Selected currency (multi-currency mode only) -->
             <div class="seventh-trad-currency-locked">
                 <div class="seventh-trad-currency-info">
                     <strong><?php esc_html_e('Currency:', '7th-traditioner'); ?></strong>
@@ -89,6 +106,20 @@ $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
                     <?php esc_html_e('Start Over', '7th-traditioner'); ?>
                 </button>
             </div>
+            <?php endif; ?>
+
+            <?php if (seventh_trad_recurring_enabled()) : ?>
+            <div id="seventh-trad-contribution-type-locked" class="seventh-trad-currency-locked" style="display: none;">
+                <div class="seventh-trad-currency-info">
+                    <strong><?php esc_html_e('Contribution:', '7th-traditioner'); ?></strong>
+                    <span id="seventh-trad-contribution-type-display-text"></span>
+                </div>
+                <button type="button" id="seventh-trad-contribution-start-over" class="seventh-trad-button-link">
+                    <?php esc_html_e('Start Over', '7th-traditioner'); ?>
+                </button>
+            </div>
+            <input type="hidden" id="seventh-trad-monthly-hidden" name="monthly_contribution" value="" />
+            <?php endif; ?>
 
             <div class="seventh-trad-messages">
                 <div class="seventh-trad-success" style="display: none;"></div>
@@ -301,6 +332,9 @@ $auto_currency = $single_currency_mode ? array_key_first($currencies) : null;
 
         <!-- PayPal Button Container (outside form to prevent conflicts) -->
         <div class="seventh-trad-submit-container">
+            <p id="seventh-trad-paypal-placeholder" class="seventh-trad-paypal-placeholder" style="display: none;">
+                <?php esc_html_e('Select how you are contributing above to continue to payment.', '7th-traditioner'); ?>
+            </p>
             <div id="seventh-trad-paypal-button-container"></div>
         </div>
 

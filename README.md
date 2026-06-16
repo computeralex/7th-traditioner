@@ -95,7 +95,7 @@ Simply add this shortcode to any page or post:
 You can customize the title and description:
 
 ```
-[seventh_traditioner title="Support Your Group" description="Your contribution helps keep our meetings running."]
+[seventh_traditioner title="7th Tradition Contributions" description="Voluntary contributions from fellowship members. We have no dues or fees."]
 ```
 
 ### Example Page Setup
@@ -286,7 +286,7 @@ Future enhancements being considered:
 
 - [ ] **Recurring contributions** - Monthly/weekly subscriptions (requires PayPal subscription API, would disable card payments to use PayPal's native recurring features)
 - [ ] Contribution reports and analytics
-- [ ] CSV export
+- [x] CSV export
 - [ ] Stripe integration option
 - [ ] Integration with accounting software
 - [ ] Anonymous contribution option

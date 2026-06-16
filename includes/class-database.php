@@ -50,6 +50,11 @@ class Seventh_Trad_Database {
             currency varchar(10) NOT NULL,
             contribution_date datetime DEFAULT CURRENT_TIMESTAMP,
             paypal_status varchar(50) DEFAULT NULL,
+            is_recurring tinyint(1) DEFAULT 0,
+            is_renewal tinyint(1) DEFAULT 0,
+            subscription_id varchar(255) DEFAULT NULL,
+            subscription_status varchar(50) DEFAULT NULL,
+            plan_id varchar(255) DEFAULT NULL,
             custom_notes text DEFAULT NULL,
             ip_address varchar(100) DEFAULT NULL,
             user_agent text DEFAULT NULL,
@@ -62,14 +67,16 @@ class Seventh_Trad_Database {
             KEY member_phone (member_phone),
             KEY contribution_type (contribution_type),
             KEY group_id (group_id),
-            KEY contribution_date (contribution_date)
+            KEY contribution_date (contribution_date),
+            KEY subscription_id (subscription_id),
+            KEY is_recurring (is_recurring)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
 
         // Store the database version
-        update_option('seventh_trad_db_version', '1.1');
+        update_option('seventh_trad_db_version', '1.2');
 
         // Run migrations for existing tables
         self::run_migrations();
@@ -98,6 +105,30 @@ class Seventh_Trad_Database {
             // Update version
             update_option('seventh_trad_db_version', '1.1');
         }
+
+        // Migration to version 1.2 - Recurring subscription fields
+        if (version_compare($current_version, '1.2', '<')) {
+            $columns = array(
+                'is_recurring' => "ADD `is_recurring` tinyint(1) DEFAULT 0 AFTER `paypal_status`",
+                'is_renewal' => "ADD `is_renewal` tinyint(1) DEFAULT 0 AFTER `is_recurring`",
+                'subscription_id' => "ADD `subscription_id` varchar(255) DEFAULT NULL AFTER `is_renewal`",
+                'subscription_status' => "ADD `subscription_status` varchar(50) DEFAULT NULL AFTER `subscription_id`",
+                'plan_id' => "ADD `plan_id` varchar(255) DEFAULT NULL AFTER `subscription_status`",
+            );
+
+            foreach ($columns as $column => $sql_fragment) {
+                $column_exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM `{$table_name}` LIKE %s", $column));
+                if (empty($column_exists)) {
+                    $result = $wpdb->query("ALTER TABLE `{$table_name}` {$sql_fragment}");
+                    if ($result === false) {
+                        error_log('7th Traditioner: Migration 1.2 failed - ' . $wpdb->last_error);
+                        return;
+                    }
+                }
+            }
+
+            update_option('seventh_trad_db_version', '1.2');
+        }
     }
 
     /**
@@ -120,6 +151,11 @@ class Seventh_Trad_Database {
             'amount' => 0,
             'currency' => 'USD',
             'paypal_status' => '',
+            'is_recurring' => 0,
+            'is_renewal' => 0,
+            'subscription_id' => '',
+            'subscription_status' => '',
+            'plan_id' => '',
             'custom_notes' => '',
             'ip_address' => self::get_client_ip(),
             'user_agent' => isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : '',
@@ -142,6 +178,11 @@ class Seventh_Trad_Database {
                 'amount' => floatval($data['amount']),
                 'currency' => sanitize_text_field($data['currency']),
                 'paypal_status' => sanitize_text_field($data['paypal_status']),
+                'is_recurring' => !empty($data['is_recurring']) ? 1 : 0,
+                'is_renewal' => !empty($data['is_renewal']) ? 1 : 0,
+                'subscription_id' => sanitize_text_field($data['subscription_id']),
+                'subscription_status' => sanitize_text_field($data['subscription_status']),
+                'plan_id' => sanitize_text_field($data['plan_id']),
                 'custom_notes' => sanitize_textarea_field($data['custom_notes']),
                 'ip_address' => sanitize_text_field($data['ip_address']),
                 'user_agent' => sanitize_text_field($data['user_agent']),
@@ -159,6 +200,11 @@ class Seventh_Trad_Database {
                 '%f', // amount
                 '%s', // currency
                 '%s', // paypal_status
+                '%d', // is_recurring
+                '%d', // is_renewal
+                '%s', // subscription_id
+                '%s', // subscription_status
+                '%s', // plan_id
                 '%s', // custom_notes
                 '%s', // ip_address
                 '%s', // user_agent
@@ -207,6 +253,43 @@ class Seventh_Trad_Database {
     }
 
     /**
+     * Get the initial (non-renewal) contribution for a subscription
+     *
+     * @param string $subscription_id PayPal subscription ID
+     * @return object|null
+     */
+    public static function get_initial_subscription_contribution($subscription_id) {
+        global $wpdb;
+        $table_name = self::get_table_name();
+
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE subscription_id = %s AND is_renewal = 0 ORDER BY id ASC LIMIT 1",
+            $subscription_id
+        ));
+    }
+
+    /**
+     * Update subscription status for all rows with a subscription ID
+     *
+     * @param string $subscription_id PayPal subscription ID
+     * @param string $status Subscription status
+     * @return bool
+     */
+    public static function update_subscription_status($subscription_id, $status) {
+        global $wpdb;
+
+        $result = $wpdb->update(
+            self::get_table_name(),
+            array('subscription_status' => sanitize_text_field($status)),
+            array('subscription_id' => sanitize_text_field($subscription_id)),
+            array('%s'),
+            array('%s')
+        );
+
+        return $result !== false;
+    }
+
+    /**
      * Get all contributions with optional filters
      *
      * @param array $args Query arguments
@@ -244,11 +327,18 @@ class Seventh_Trad_Database {
         $where = self::build_where_clause($args);
         $where_clause = implode(' AND ', $where['clauses']);
 
-        $query = "SELECT * FROM $table_name WHERE $where_clause ORDER BY {$order_by} {$order} LIMIT %d OFFSET %d";
-        $values = array_merge($where['values'], array($args['limit'], $args['offset']));
+        if ((int) $args['limit'] < 0) {
+            $query = "SELECT * FROM $table_name WHERE $where_clause ORDER BY {$order_by} {$order}";
+            if (!empty($where['values'])) {
+                $query = $wpdb->prepare($query, $where['values']);
+            }
+        } else {
+            $query = "SELECT * FROM $table_name WHERE $where_clause ORDER BY {$order_by} {$order} LIMIT %d OFFSET %d";
+            $values = array_merge($where['values'], array($args['limit'], $args['offset']));
 
-        if (!empty($values)) {
-            $query = $wpdb->prepare($query, $values);
+            if (!empty($values)) {
+                $query = $wpdb->prepare($query, $values);
+            }
         }
 
         return $wpdb->get_results($query);
